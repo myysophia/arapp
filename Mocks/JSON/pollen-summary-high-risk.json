@@ -1,0 +1,13 @@
+{
+  "id": "summary-shanghai-high",
+  "city_name": "上海",
+  "location_id": "6f222b19-b7c9-4baa-8661-2dd6905ddf00",
+  "risk_overall": 4,
+  "tree_level": 2,
+  "grass_level": 4,
+  "weed_level": 4,
+  "confidence": 0.84,
+  "updated_at": "2026-03-06T08:10:00Z",
+  "source": "model",
+  "is_stale": false
+}

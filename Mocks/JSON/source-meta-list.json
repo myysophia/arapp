@@ -1,0 +1,11 @@
+[
+  {
+    "id": "8d11c444-0dd7-492d-a185-774bcc66a6f7",
+    "provider_name": "Primary Model Provider",
+    "source": "model",
+    "coverage_note": "中国大陆主要城市模型覆盖",
+    "license_note": "仅用于风险参考，不代表采样监测",
+    "active": true,
+    "updated_at": "2026-03-06T08:10:00Z"
+  }
+]
