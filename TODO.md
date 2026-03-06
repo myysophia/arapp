@@ -2,13 +2,14 @@
 
 ## [Phase 1 - 多 Agent 并行开发] (优先级: 高)
 创建时间：2026-03-06 17:40
-更新时间：2026-03-06 17:40 - 初始化多 Agent 并行任务清单
+更新时间：2026-03-06 19:35 - 回写 Linear 项目、Agent lane、优先级与 assignee 规则
 
 ### 并行开发规则
 - 每个任务必须有单一产出物，避免多个 Agent 同时改同一文件。
 - 每个任务优先控制在半天到一天内完成，可独立提交一个 PR。
 - 共享真源固定为：
-  - 设计真源：`Figma 文件 l629AeywT4tJwH7B3F2EJM`
+  - 设计真源：`Figma 文件 cf5PnK1WSe5IYRQNGT81fu`
+  - 历史素材源：`Figma 文件 l629AeywT4tJwH7B3F2EJM`
   - UI 规格真源：`/Users/ninesun/projects/arapp/docs/plans/phase-1/02-ui-ux-spec.md`
   - 数据库真源：`/Users/ninesun/projects/arapp/docs/plans/phase-1/05-db-schema-supabase.sql.md`
   - API 真源：`/Users/ninesun/projects/arapp/docs/plans/phase-1/06-api-edge-functions-contract.md`
@@ -17,6 +18,52 @@
   - 原型与设计导出：`prototype/homepage/`
   - 未来 iOS 工程建议拆分为：`App`、`Features`、`SharedUI`、`Models`、`Services`、`Tests`
 - 每个任务完成后都要回填：完成说明、变更文件、阻塞项。
+
+### Linear 真源
+- Linear 项目：`arapp Phase 1`
+- Linear 链接：`https://linear.app/ninesun/project/arapp-phase-1-00573ec1698e`
+- Wave 里程碑：
+  - `Wave 0 Foundations`
+  - `Wave 1 Static Screens`
+  - `Wave 2 Shared Components`
+  - `Wave 3 Integration`
+  - `Wave 4 QA Release`
+- 本地 `TODO.md` 用于说明执行规则；任务状态、依赖、优先级、指派以 Linear 为准。
+
+### Linear 指派与标签规则
+- `assignee`：所有任务统一指派给真实 owner `王九日`，避免无人归属。
+- `agent lane`：使用标签表达执行通道，不用虚拟账号冒充 assignee。
+- Agent 标签：
+  - `agent-a`：设计系统与 Figma 整理
+  - `agent-b`：iOS 工程骨架与导航
+  - `agent-c`：共享组件与设计 Token
+  - `agent-d`：数据模型、Mock、API/Auth 适配层
+  - `agent-e`：页面实现与状态页
+  - `agent-f`：测试、国际化、验收
+- 领域标签：
+  - `design`
+  - `ios`
+  - `shared-ui`
+  - `services`
+  - `testing`
+  - `i18n`
+  - `infra`
+
+### Priority 规则
+- `High`
+  - 阻塞后续开发的基础设施任务
+  - 服务接线任务
+  - 国际化与测试收口任务
+- `Medium`
+  - 页面静态实现任务
+  - 共享组件提取任务
+  - 文档回填与阶段收口任务
+
+### 分支与提交流程
+- 分支命名优先使用 Linear 自动生成的 branch name。
+- 一个 Linear issue 对应一个分支与一个 PR。
+- `push` 前必须通过本地 `pre-push` 门禁。
+- 合并前必须通过 GitHub Actions 与分支保护。
 
 ### 建议 Agent 编组
 - Agent A：设计系统与 Figma 整理
@@ -27,13 +74,14 @@
 - Agent F：测试、国际化、验收
 
 ### Wave 0：立即可并行启动
-- [ ] T01 - 整理 Figma 页面结构与命名
+- [x] T01 - 整理 Figma 页面结构与命名
   - 建议负责人：Agent A
   - 预计时长：0.5 天
   - 依赖：无
   - 输出物：统一页面分组、画板命名、封面说明、组件页入口
   - 主要边界：只动 Figma，不改代码
   - 成功标准：Figma 内形成 `00 Cover / 01 Foundations / 02 Mobile Core / 03 Main Screens / 04 States & Overlays`
+  - 完成说明：已新建整理版真源文件 `cf5PnK1WSe5IYRQNGT81fu`，旧文件 `l629AeywT4tJwH7B3F2EJM` 降级为历史素材源
 
 - [ ] T02 - 回写 UI 文档与 Figma 命名映射
   - 建议负责人：Agent A
