@@ -1,0 +1,63 @@
+name: Release Phase
+
+on:
+  workflow_dispatch:
+    inputs:
+      phase_tag:
+        description: "阶段标签，例如 phase-1-ui-static"
+        required: true
+        type: string
+      phase_name:
+        description: "阶段名称，用于 Release 标题"
+        required: false
+        type: string
+      notes:
+        description: "附加说明，可选"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    name: Create Phase Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate Tag
+        run: |
+          if [[ ! "${{ inputs.phase_tag }}" =~ ^phase-[a-z0-9._-]+$ ]]; then
+            echo "phase_tag 格式非法，示例：phase-1-ui-static"
+            exit 1
+          fi
+
+      - name: Create Git Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ inputs.phase_tag }}" -m "${{ inputs.phase_name || inputs.phase_tag }}"
+          git push origin "${{ inputs.phase_tag }}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          title="${{ inputs.phase_name }}"
+          if [[ -z "$title" ]]; then
+            title="${{ inputs.phase_tag }}"
+          fi
+
+          if [[ -n "${{ inputs.notes }}" ]]; then
+            gh release create "${{ inputs.phase_tag }}" \
+              --title "$title" \
+              --notes "${{ inputs.notes }}"
+          else
+            gh release create "${{ inputs.phase_tag }}" \
+              --title "$title" \
+              --generate-notes
+          fi

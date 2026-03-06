@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pollen Arc States & Overlays</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Fraunces:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+    <style>
+      :root {
+        --bg: #eef4f1;
+        --paper: rgba(255,255,255,0.86);
+        --ink: #11202d;
+        --muted: #5b6a75;
+        --line: rgba(17,32,45,0.09);
+        --brand: #0e7490;
+        --brand-deep: #0a5368;
+        --danger: #c84d4d;
+        --shadow: 0 18px 40px rgba(17,32,45,0.14);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "IBM Plex Sans", "PingFang SC", "Noto Sans SC", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 10% 10%, rgba(14,116,144,0.15), transparent 28%),
+          radial-gradient(circle at 90% 12%, rgba(240,203,72,0.13), transparent 18%),
+          linear-gradient(180deg, #f5f8f6 0%, var(--bg) 100%);
+      }
+
+      .page {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 28px;
+        display: grid;
+        gap: 24px;
+      }
+
+      .header,
+      .board,
+      .card,
+      .overlay {
+        background: var(--paper);
+        border-radius: 28px;
+        border: 1px solid rgba(255,255,255,0.72);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .header {
+        padding: 26px 28px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(14,116,144,0.08);
+        color: var(--brand-deep);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .header h1 {
+        margin: 12px 0 10px;
+        font-family: "Fraunces", serif;
+        font-size: 42px;
+        line-height: 1.08;
+      }
+
+      .header p {
+        margin: 0;
+        max-width: 760px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .board {
+        padding: 24px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .card,
+      .overlay {
+        padding: 22px;
+      }
+
+      .card h2,
+      .overlay h2 {
+        margin: 12px 0 8px;
+        font-size: 26px;
+      }
+
+      .card p,
+      .overlay p,
+      .list-row small {
+        color: var(--muted);
+        line-height: 1.65;
+        margin: 0;
+      }
+
+      .hero-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        background: rgba(14,116,144,0.1);
+        display: grid;
+        place-items: center;
+        color: var(--brand-deep);
+        font-size: 26px;
+        font-weight: 700;
+      }
+
+      .cta-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+      }
+
+      .btn {
+        height: 44px;
+        padding: 0 16px;
+        border-radius: 14px;
+        border: 0;
+        font: inherit;
+        font-weight: 600;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--brand), #1692ad);
+        color: white;
+      }
+
+      .btn-secondary {
+        background: white;
+        color: var(--muted);
+        border: 1px solid var(--line);
+      }
+
+      .overlay-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 24px;
+      }
+
+      .phone-stage {
+        min-height: 680px;
+        padding: 22px;
+        border-radius: 32px;
+        background:
+          radial-gradient(circle at top left, rgba(14,116,144,0.12), transparent 28%),
+          linear-gradient(180deg, #f7fbf9 0%, #eef4f1 100%);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .search-sheet,
+      .dialog,
+      .source-sheet {
+        position: absolute;
+        left: 22px;
+        right: 22px;
+        border-radius: 28px;
+        background: rgba(255,255,255,0.96);
+        border: 1px solid rgba(17,32,45,0.08);
+        box-shadow: 0 20px 40px rgba(17,32,45,0.14);
+      }
+
+      .search-sheet {
+        top: 74px;
+        padding: 16px;
+      }
+
+      .source-sheet {
+        bottom: 22px;
+        padding: 16px;
+      }
+
+      .dialog {
+        top: 220px;
+        left: 56px;
+        right: 56px;
+        padding: 18px;
+      }
+
+      .grabber {
+        width: 44px;
+        height: 5px;
+        border-radius: 999px;
+        background: rgba(17,32,45,0.16);
+        margin: 0 auto 12px;
+      }
+
+      .search-input,
+      .list-row {
+        border-radius: 18px;
+        background: white;
+        border: 1px solid var(--line);
+      }
+
+      .search-input {
+        padding: 14px 16px;
+        color: var(--muted);
+      }
+
+      .list {
+        display: grid;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .list-row {
+        padding: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .pill {
+        display: inline-flex;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(14,116,144,0.08);
+        color: var(--brand-deep);
+        font-size: 12px;
+      }
+
+      .danger {
+        color: var(--danger);
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .meta {
+        padding: 12px;
+        border-radius: 18px;
+        background: rgba(14,116,144,0.05);
+      }
+
+      .meta strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="header">
+        <div class="eyebrow">Edge cases</div>
+        <h1>状态页与弹层规格</h1>
+        <p>把开发最容易漏掉的边界态收拢成一页，包括权限拒绝、离线缓存、空提醒，以及城市搜索抽屉、来源说明抽屉、危险操作确认弹窗。</p>
+      </section>
+
+      <section class="board">
+        <article class="card">
+          <div class="hero-icon">L</div>
+          <h2>定位未开启</h2>
+          <p>用户拒绝定位后，不阻断主流程。页面直接引导手动选城，并解释这样不会上送实时坐标。</p>
+          <div class="cta-row">
+            <button class="btn btn-primary">手动选择城市</button>
+            <button class="btn btn-secondary">稍后再说</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="hero-icon">W</div>
+          <h2>网络不可用</h2>
+          <p>优先展示最近一次有效缓存，明确更新时间，并限制交互到可恢复范围，避免出现空白页。</p>
+          <div class="cta-row">
+            <button class="btn btn-primary">查看缓存结果</button>
+            <button class="btn btn-secondary">重新尝试</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="hero-icon">N</div>
+          <h2>提醒为空</h2>
+          <p>还未设置阈值时，界面只给一个主操作，不堆说明。说明放在次级文本中，保持克制。</p>
+          <div class="cta-row">
+            <button class="btn btn-primary">设置提醒阈值</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="overlay-grid">
+        <div class="phone-stage">
+          <div class="search-sheet">
+            <div class="grabber"></div>
+            <div class="search-input">搜索城市、区县或拼音</div>
+            <div class="list">
+              <div class="list-row"><div><strong>上海市</strong><small>Shanghai, CN</small></div><span class="pill">最近访问</span></div>
+              <div class="list-row"><div><strong>杭州市</strong><small>Hangzhou, CN</small></div><span class="pill">华东</span></div>
+              <div class="list-row"><div><strong>苏州市</strong><small>Suzhou, CN</small></div><span class="pill">推荐</span></div>
+            </div>
+          </div>
+
+          <div class="source-sheet">
+            <div class="grabber"></div>
+            <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
+              <div>
+                <strong>来源透明说明</strong>
+                <p style="margin-top:8px;">当前结果来自模型点推断，而不是站点实测。适合趋势判断，不适合作为医疗结论。</p>
+              </div>
+              <span class="pill">MODEL</span>
+            </div>
+            <div class="meta-grid">
+              <div class="meta"><small>更新于</small><strong>07:10</strong></div>
+              <div class="meta"><small>置信度</small><strong>0.81</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid; gap:24px;">
+          <article class="overlay">
+            <div class="eyebrow">Overlay A</div>
+            <h2>城市搜索抽屉</h2>
+            <p>上半屏输入，下方是近期城市和搜索结果。不要一上来铺满列表，优先给最近访问和系统推荐。</p>
+          </article>
+
+          <article class="overlay">
+            <div class="eyebrow">Overlay B</div>
+            <h2>来源说明抽屉</h2>
+            <p>这个抽屉是降低误解风险的关键。它要把“模型点”“更新时间”“置信度”“许可说明入口”都讲清楚。</p>
+          </article>
+
+          <div class="phone-stage" style="min-height: 320px;">
+            <div class="dialog">
+              <div class="eyebrow" style="background: rgba(200,77,77,0.1); color: var(--danger);">Danger action</div>
+              <h2>删除提醒数据？</h2>
+              <p>删除后会清空当前账户下的设备令牌、提醒订阅与最近送达记录。这个动作不可撤销。</p>
+              <div class="cta-row">
+                <button class="btn btn-secondary">取消</button>
+                <button class="btn btn-primary" style="background: linear-gradient(135deg, #c84d4d, #de6767);">确认删除</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

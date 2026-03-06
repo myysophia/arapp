@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Pollen Arc Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Fraunces:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+    <style>
+      :root {
+        --bg: #f4f6f4;
+        --paper: rgba(255, 255, 255, 0.84);
+        --paper-strong: #ffffff;
+        --ink: #11202d;
+        --muted: #5b6a75;
+        --line: rgba(17, 32, 45, 0.1);
+        --brand: #0e7490;
+        --brand-deep: #0a5368;
+        --accent: #ddeeea;
+        --shadow: 0 18px 40px rgba(17, 32, 45, 0.12);
+        --risk-0: #d6dde5;
+        --risk-1: #9edcb4;
+        --risk-2: #45c77d;
+        --risk-3: #f0cb48;
+        --risk-4: #f18e3c;
+        --risk-5: #d94d4d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "IBM Plex Sans", "PingFang SC", "Noto Sans SC", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(14, 116, 144, 0.2), transparent 30%),
+          radial-gradient(circle at 85% 10%, rgba(240, 203, 72, 0.22), transparent 22%),
+          linear-gradient(180deg, #eef4f1 0%, var(--bg) 100%);
+        min-height: 100vh;
+      }
+
+      .page {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 32px;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 250px minmax(0, 1fr) 320px;
+        gap: 24px;
+        align-items: start;
+      }
+
+      .panel {
+        background: var(--paper);
+        backdrop-filter: blur(18px);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        box-shadow: var(--shadow);
+        border-radius: 28px;
+      }
+
+      .sidebar {
+        padding: 28px 22px;
+        position: sticky;
+        top: 24px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+
+      .brand-mark {
+        width: 44px;
+        height: 44px;
+        display: block;
+      }
+
+      .brand-title {
+        font-family: "Fraunces", serif;
+        font-size: 26px;
+        line-height: 1;
+      }
+
+      .brand-sub {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 3px;
+      }
+
+      .nav {
+        display: grid;
+        gap: 10px;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .nav-item.active {
+        color: var(--ink);
+        background: linear-gradient(135deg, rgba(14, 116, 144, 0.12), rgba(221, 238, 234, 0.9));
+      }
+
+      .nav-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: currentColor;
+        opacity: 0.7;
+      }
+
+      .sidebar-footer {
+        margin-top: 26px;
+        padding: 18px;
+        border-radius: 22px;
+        background: rgba(14, 116, 144, 0.08);
+      }
+
+      .sidebar-footer h4 {
+        margin: 0 0 8px;
+        font-size: 15px;
+      }
+
+      .sidebar-footer p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 13px;
+      }
+
+      .main {
+        padding: 28px;
+        display: grid;
+        gap: 22px;
+      }
+
+      .page-topline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 18px;
+        border-radius: 22px;
+        background: linear-gradient(135deg, rgba(14, 116, 144, 0.08), rgba(255, 255, 255, 0.88));
+        border: 1px solid rgba(17, 32, 45, 0.08);
+      }
+
+      .topline-title {
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      .topline-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .status-chip {
+        padding: 9px 12px;
+        border-radius: 999px;
+        background: white;
+        border: 1px solid var(--line);
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+        gap: 18px;
+      }
+
+      .hero-card {
+        border-radius: 28px;
+        padding: 28px;
+      }
+
+      .hero-risk {
+        background:
+          linear-gradient(135deg, rgba(14, 116, 144, 0.95), rgba(9, 83, 104, 0.95)),
+          var(--brand);
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-risk::after {
+        content: "";
+        position: absolute;
+        width: 260px;
+        height: 260px;
+        border-radius: 999px;
+        right: -40px;
+        top: -50px;
+        background: rgba(255, 255, 255, 0.09);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        font-size: 13px;
+      }
+
+      .hero-risk h1 {
+        margin: 18px 0 10px;
+        font-size: 48px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .hero-risk p {
+        margin: 0;
+        max-width: 32ch;
+        color: rgba(255, 255, 255, 0.88);
+        line-height: 1.6;
+      }
+
+      .hero-meta {
+        display: flex;
+        gap: 26px;
+        margin-top: 26px;
+      }
+
+      .hero-meta strong {
+        display: block;
+        font-size: 22px;
+      }
+
+      .hero-meta span {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.72);
+      }
+
+      .primary-button {
+        margin-top: 26px;
+        border: 0;
+        border-radius: 16px;
+        padding: 14px 18px;
+        background: white;
+        color: var(--brand-deep);
+        font-weight: 600;
+        font-size: 15px;
+      }
+
+      .hero-side {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 250, 249, 0.92));
+        border: 1px solid rgba(17, 32, 45, 0.08);
+      }
+
+      .side-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .side-heading h2 {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .side-heading span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .index-chip {
+        margin-top: 18px;
+        padding: 16px 18px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(240, 203, 72, 0.18), rgba(255, 255, 255, 0.9));
+        border: 1px solid rgba(241, 142, 60, 0.22);
+      }
+
+      .index-chip strong {
+        display: block;
+        font-size: 34px;
+        line-height: 1;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .pill {
+        padding: 10px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        color: var(--ink);
+        background: #eef3f4;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .signal-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .signal-item {
+        padding: 18px 20px;
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(241, 247, 246, 0.88));
+        border: 1px solid var(--line);
+      }
+
+      .signal-item strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 24px;
+      }
+
+      .signal-item span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .card {
+        padding: 22px;
+      }
+
+      .card h3 {
+        margin: 0 0 16px;
+        font-size: 17px;
+      }
+
+      .metric {
+        display: grid;
+        gap: 14px;
+      }
+
+      .metric-row {
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr) 56px;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .metric-row span {
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      .bar {
+        height: 10px;
+        border-radius: 999px;
+        background: #eef2f2;
+        overflow: hidden;
+      }
+
+      .bar-fill {
+        height: 100%;
+        border-radius: inherit;
+      }
+
+      .trend-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .trend-day {
+        padding: 16px;
+        border-radius: 20px;
+        background: linear-gradient(180deg, rgba(14, 116, 144, 0.06), rgba(255, 255, 255, 0.95));
+        border: 1px solid var(--line);
+      }
+
+      .trend-day strong {
+        display: block;
+        margin-top: 10px;
+        font-size: 26px;
+      }
+
+      .trend-day span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .trend-tag {
+        display: inline-flex;
+        padding: 7px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .advice-list {
+        display: grid;
+        gap: 14px;
+      }
+
+      .advice-item {
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr);
+        gap: 14px;
+        padding: 16px;
+        border-radius: 22px;
+        background: rgba(14, 116, 144, 0.05);
+      }
+
+      .advice-icon {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        background: white;
+        color: var(--brand-deep);
+        font-weight: 700;
+      }
+
+      .advice-item h4,
+      .right-panel h3 {
+        margin: 0 0 6px;
+      }
+
+      .advice-item p,
+      .card p,
+      .right-panel p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 14px;
+      }
+
+      .source-card {
+        border: 1px dashed rgba(14, 116, 144, 0.22);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(239, 246, 245, 0.9));
+      }
+
+      .source-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 12px;
+      }
+
+      .source-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(14, 116, 144, 0.08);
+        color: var(--brand-deep);
+        font-size: 13px;
+      }
+
+      .right-panel {
+        padding: 24px;
+        position: sticky;
+        top: 24px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .mini-map {
+        height: 220px;
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at 20% 30%, rgba(217, 77, 77, 0.45), transparent 18%),
+          radial-gradient(circle at 60% 55%, rgba(241, 142, 60, 0.4), transparent 20%),
+          radial-gradient(circle at 80% 25%, rgba(69, 199, 125, 0.35), transparent 18%),
+          linear-gradient(160deg, #eef5f2, #e1ebea);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .mini-map::after {
+        content: "";
+        position: absolute;
+        inset: 18px;
+        border-radius: 22px;
+        border: 1px solid rgba(17, 32, 45, 0.08);
+      }
+
+      .legend {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .legend-bar {
+        flex: 1;
+        height: 10px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--risk-1), var(--risk-3), var(--risk-5));
+      }
+
+      .mini-section {
+        padding: 18px;
+        border-radius: 22px;
+        background: rgba(14, 116, 144, 0.05);
+      }
+
+      .device {
+        padding: 16px;
+        border-radius: 18px;
+        background: white;
+        border: 1px solid var(--line);
+      }
+
+      .device + .device {
+        margin-top: 12px;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .caption {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      @media (max-width: 1180px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar,
+        .right-panel {
+          position: static;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .page {
+          padding: 16px;
+        }
+
+        .main,
+        .sidebar,
+        .right-panel {
+          padding: 20px;
+        }
+
+        .hero,
+        .summary-grid,
+        .trend-grid,
+        .signal-strip {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-risk h1 {
+          font-size: 38px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="shell">
+        <aside class="panel sidebar">
+          <div class="brand">
+            <img class="brand-mark" src="./logo.svg" alt="Pollen Arc logo" />
+            <div>
+              <div class="brand-title">Pollen Arc</div>
+              <div class="brand-sub">花粉风险地图与行动计划</div>
+            </div>
+          </div>
+
+          <nav class="nav">
+            <div class="nav-item active"><span class="nav-dot"></span>今日</div>
+            <div class="nav-item"><span class="nav-dot"></span>地图</div>
+            <div class="nav-item"><span class="nav-dot"></span>提醒</div>
+            <div class="nav-item"><span class="nav-dot"></span>我的</div>
+          </nav>
+
+          <div class="sidebar-footer">
+            <h4>今日原则</h4>
+            <p>先告诉用户是否危险，再解释为什么危险，并给出一条最该执行的行动建议。</p>
+          </div>
+        </aside>
+
+        <main class="panel main">
+          <section class="page-topline">
+            <div>
+              <div class="topline-title">今天的行动窗口已经准备好</div>
+              <strong>先看风险，再决定是否开启提醒或改走地图查看区域差异</strong>
+            </div>
+            <div class="topline-actions">
+              <div class="status-chip">数据模型已更新</div>
+              <div class="status-chip">单城市提醒已开启</div>
+              <div class="status-chip">语言：简体中文</div>
+            </div>
+          </section>
+
+          <section class="hero">
+            <div class="hero-card hero-risk">
+              <div class="eyebrow">上海 · 徐汇区 · 模型点</div>
+              <h1>高风险</h1>
+              <p>今天草类与杂草花粉抬升明显，建议减少长时间户外暴露，并在外出前准备口罩与眼部防护。</p>
+
+              <div class="hero-meta">
+                <div>
+                  <strong>UPI 4.1</strong>
+                  <span>综合风险指数</span>
+                </div>
+                <div>
+                  <strong>84%</strong>
+                  <span>模型信心</span>
+                </div>
+                <div>
+                  <strong>08:10</strong>
+                  <span>最近更新</span>
+                </div>
+              </div>
+
+              <button class="primary-button">开启高花粉提醒</button>
+            </div>
+
+            <div class="hero-card hero-side">
+              <div class="side-heading">
+                <div>
+                  <h2>今日主导过敏原</h2>
+                  <span>未来 12 小时需重点关注</span>
+                </div>
+                <span>3 类</span>
+              </div>
+
+              <div class="index-chip">
+                <span class="caption">主要压力来源</span>
+                <strong>草类</strong>
+                <span class="caption">上午 10:00 到下午 16:00 风险最明显</span>
+              </div>
+
+              <div class="pill-row">
+                <div class="pill">树类 2 / 5</div>
+                <div class="pill">草类 4 / 5</div>
+                <div class="pill">杂草 4 / 5</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="signal-strip">
+            <div class="signal-item">
+              <span>今日检测窗口</span>
+              <strong>07:00</strong>
+            </div>
+            <div class="signal-item">
+              <span>高风险时段</span>
+              <strong>10:00-16:00</strong>
+            </div>
+            <div class="signal-item">
+              <span>默认关注城市</span>
+              <strong>上海</strong>
+            </div>
+            <div class="signal-item">
+              <span>当前策略</span>
+              <strong>先提醒后解释</strong>
+            </div>
+          </section>
+
+          <section class="summary-grid">
+            <article class="panel card">
+              <h3>分项概览</h3>
+              <div class="metric">
+                <div class="metric-row">
+                  <span>树类</span>
+                  <div class="bar"><div class="bar-fill" style="width: 42%; background: var(--risk-2);"></div></div>
+                  <strong>2</strong>
+                </div>
+                <div class="metric-row">
+                  <span>草类</span>
+                  <div class="bar"><div class="bar-fill" style="width: 78%; background: var(--risk-4);"></div></div>
+                  <strong>4</strong>
+                </div>
+                <div class="metric-row">
+                  <span>杂草</span>
+                  <div class="bar"><div class="bar-fill" style="width: 74%; background: var(--risk-4);"></div></div>
+                  <strong>4</strong>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel card">
+              <h3>未来 3 天趋势</h3>
+              <div class="trend-grid">
+                <div class="trend-day">
+                  <span>今天</span>
+                  <strong>4</strong>
+                  <div class="trend-tag" style="background: rgba(241, 142, 60, 0.18); color: #a15016;">高</div>
+                </div>
+                <div class="trend-day">
+                  <span>明天</span>
+                  <strong>5</strong>
+                  <div class="trend-tag" style="background: rgba(217, 77, 77, 0.15); color: #9f2525;">很高</div>
+                </div>
+                <div class="trend-day">
+                  <span>后天</span>
+                  <strong>3</strong>
+                  <div class="trend-tag" style="background: rgba(240, 203, 72, 0.2); color: #7e6200;">中等</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel card">
+              <h3>行动建议</h3>
+              <div class="advice-list">
+                <div class="advice-item">
+                  <div class="advice-icon">1</div>
+                  <div>
+                    <h4>减少午后长时间外出</h4>
+                    <p>今天中午到下午的草类花粉最明显，户外运动建议改到清晨或晚间。</p>
+                  </div>
+                </div>
+                <div class="advice-item">
+                  <div class="advice-icon">2</div>
+                  <div>
+                    <h4>回家后尽快更换外套</h4>
+                    <p>减少花粉残留在衣物和头发上的二次暴露。</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section class="panel card source-card">
+            <h3>来源透明</h3>
+            <p>当前结果基于模型预测与区域环境条件综合估算，用于风险参考，不代表真实采样监测结论。</p>
+            <div class="source-row">
+              <div class="source-badge">Source · Model point · Updated 08:10</div>
+              <span class="caption">非医疗建议</span>
+            </div>
+          </section>
+        </main>
+
+        <aside class="panel right-panel">
+          <section>
+            <h3>城市热力预览</h3>
+            <p>以地图方式显示不同区域的花粉风险强弱，帮助用户快速判断今天应避免哪些区域。</p>
+            <div class="mini-map"></div>
+            <div class="legend">
+              <span class="caption">低</span>
+              <div class="legend-bar"></div>
+              <span class="caption">高</span>
+            </div>
+          </section>
+
+          <section class="mini-section">
+            <h3>提醒策略</h3>
+            <p>当综合风险达到 4 级或以上时，在上午 7 点前推送简洁提醒，不在夜间打扰。</p>
+          </section>
+
+          <section>
+            <h3>多端同步预留</h3>
+            <div class="device">
+              <div class="row">
+                <strong>Google 登录</strong>
+                <span class="caption">可选</span>
+              </div>
+              <p>用于同步默认城市、提醒阈值和语言设置。</p>
+            </div>
+            <div class="device">
+              <div class="row">
+                <strong>Apple 登录</strong>
+                <span class="caption">iOS 审核友好</span>
+              </div>
+              <p>不阻断匿名使用，只在需要同步时出现。</p>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </body>
+</html>
