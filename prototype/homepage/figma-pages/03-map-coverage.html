@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>03 Main Screens / Map Coverage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Fraunces:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+    <style>
+      :root {
+        --bg: #f3f6f3;
+        --paper: rgba(255, 255, 255, 0.84);
+        --paper-strong: #ffffff;
+        --ink: #11202d;
+        --muted: #5b6a75;
+        --line: rgba(17, 32, 45, 0.1);
+        --brand: #0e7490;
+        --brand-deep: #0a5368;
+        --shadow: 0 18px 40px rgba(17, 32, 45, 0.12);
+        --risk-1: #86efac;
+        --risk-2: #45c77d;
+        --risk-3: #f0cb48;
+        --risk-4: #f18e3c;
+        --risk-5: #d94d4d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "IBM Plex Sans", "PingFang SC", "Noto Sans SC", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 10% 12%, rgba(14, 116, 144, 0.18), transparent 28%),
+          radial-gradient(circle at 88% 10%, rgba(240, 203, 72, 0.16), transparent 20%),
+          linear-gradient(180deg, #eef4f1 0%, var(--bg) 100%);
+        min-height: 100vh;
+      }
+
+      .page {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 28px;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr) 340px;
+        gap: 24px;
+      }
+
+      .panel {
+        border-radius: 28px;
+        background: var(--paper);
+        backdrop-filter: blur(18px);
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        box-shadow: var(--shadow);
+      }
+
+      .sidebar,
+      .right {
+        padding: 24px;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 24px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 26px;
+      }
+
+      .brand img {
+        width: 44px;
+        height: 44px;
+      }
+
+      .brand-title {
+        font-family: "Fraunces", serif;
+        font-size: 26px;
+        line-height: 1;
+      }
+
+      .brand-sub {
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .nav {
+        display: grid;
+        gap: 10px;
+      }
+
+      .nav-item {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding: 14px 16px;
+        border-radius: 18px;
+        color: var(--muted);
+      }
+
+      .nav-item.active {
+        background: linear-gradient(135deg, rgba(14, 116, 144, 0.12), rgba(221, 238, 234, 0.85));
+        color: var(--ink);
+      }
+
+      .nav-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: currentColor;
+      }
+
+      .sidebar-note {
+        margin-top: 24px;
+        padding: 18px;
+        border-radius: 22px;
+        background: rgba(14, 116, 144, 0.08);
+      }
+
+      .sidebar-note h4,
+      .card h3,
+      .right h3,
+      .sheet h2 {
+        margin: 0 0 8px;
+      }
+
+      .sidebar-note p,
+      .card p,
+      .right p,
+      .sheet p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 14px;
+      }
+
+      .main {
+        padding: 24px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: center;
+      }
+
+      .city-rail {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .search {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-radius: 20px;
+        background: white;
+        border: 1px solid var(--line);
+      }
+
+      .search span {
+        color: var(--muted);
+      }
+
+      .toolbar-badges {
+        display: flex;
+        gap: 12px;
+      }
+
+      .badge {
+        padding: 12px 14px;
+        border-radius: 18px;
+        background: white;
+        border: 1px solid var(--line);
+        font-size: 13px;
+      }
+
+      .city-chip {
+        padding: 10px 12px;
+        border-radius: 999px;
+        background: rgba(14, 116, 144, 0.08);
+        color: var(--brand-deep);
+        font-size: 13px;
+      }
+
+      .map-stage {
+        position: relative;
+        min-height: 720px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 22% 34%, rgba(217, 77, 77, 0.55), transparent 12%),
+          radial-gradient(circle at 47% 28%, rgba(241, 142, 60, 0.5), transparent 14%),
+          radial-gradient(circle at 58% 58%, rgba(240, 203, 72, 0.44), transparent 14%),
+          radial-gradient(circle at 72% 38%, rgba(69, 199, 125, 0.42), transparent 14%),
+          linear-gradient(155deg, #edf4f1, #dce7e5);
+      }
+
+      .map-stage::before {
+        content: "";
+        position: absolute;
+        inset: 18px;
+        border-radius: 24px;
+        border: 1px solid rgba(17, 32, 45, 0.08);
+        background:
+          linear-gradient(90deg, transparent 24%, rgba(17, 32, 45, 0.04) 25%, transparent 26%, transparent 49%, rgba(17, 32, 45, 0.04) 50%, transparent 51%, transparent 74%, rgba(17, 32, 45, 0.04) 75%, transparent 76%),
+          linear-gradient(transparent 24%, rgba(17, 32, 45, 0.04) 25%, transparent 26%, transparent 49%, rgba(17, 32, 45, 0.04) 50%, transparent 51%, transparent 74%, rgba(17, 32, 45, 0.04) 75%, transparent 76%);
+      }
+
+      .map-point {
+        position: absolute;
+        display: grid;
+        place-items: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        background: white;
+        box-shadow: 0 8px 20px rgba(17, 32, 45, 0.18);
+        border: 2px solid rgba(14, 116, 144, 0.35);
+      }
+
+      .map-point::after {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--brand);
+      }
+
+      .map-point.one { left: 22%; top: 34%; }
+      .map-point.two { left: 48%; top: 27%; }
+      .map-point.three { left: 62%; top: 57%; }
+      .map-point.four { left: 73%; top: 37%; }
+
+      .floating-actions {
+        position: absolute;
+        right: 22px;
+        top: 22px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .float-btn {
+        width: 52px;
+        height: 52px;
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid var(--line);
+        box-shadow: 0 12px 24px rgba(17, 32, 45, 0.12);
+        font-weight: 700;
+      }
+
+      .sheet {
+        position: absolute;
+        left: 22px;
+        right: 22px;
+        bottom: 22px;
+        padding: 22px;
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.78);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 20px 34px rgba(17, 32, 45, 0.14);
+      }
+
+      .sheet-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-start;
+      }
+
+      .risk-tag {
+        display: inline-flex;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .sheet-grid {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .sheet-meta {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .sheet-stat {
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(14, 116, 144, 0.06);
+      }
+
+      .sheet-stat strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 24px;
+      }
+
+      .sheet-actions {
+        margin-top: 18px;
+        display: flex;
+        gap: 12px;
+      }
+
+      .btn {
+        padding: 13px 16px;
+        border-radius: 16px;
+        border: 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .btn.primary {
+        background: var(--brand);
+        color: white;
+      }
+
+      .btn.secondary {
+        background: rgba(14, 116, 144, 0.1);
+        color: var(--brand-deep);
+      }
+
+      .right {
+        position: sticky;
+        top: 24px;
+        display: grid;
+        gap: 18px;
+        align-content: start;
+      }
+
+      .card {
+        padding: 20px;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.76);
+        border: 1px solid rgba(17, 32, 45, 0.08);
+      }
+
+      .legend-row {
+        margin-top: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .legend-bar {
+        flex: 1;
+        height: 10px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--risk-1), var(--risk-3), var(--risk-5));
+      }
+
+      .mini-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .mini-item {
+        padding: 14px;
+        border-radius: 18px;
+        background: white;
+        border: 1px solid var(--line);
+      }
+
+      .mini-item strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      @media (max-width: 1180px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar,
+        .right {
+          position: static;
+        }
+      }
+
+      @media (max-width: 820px) {
+        .page {
+          padding: 16px;
+        }
+
+        .main,
+        .sidebar,
+        .right {
+          padding: 20px;
+        }
+
+        .toolbar,
+        .sheet-head,
+        .sheet-actions {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .sheet-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .map-stage {
+          min-height: 620px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="shell">
+        <aside class="panel sidebar">
+          <div class="brand">
+            <img src="./logo.svg" alt="Pollen Arc logo" width="44" height="44" />
+            <div>
+              <div class="brand-title">Pollen Arc</div>
+              <div class="brand-sub">花粉风险地图与行动计划</div>
+            </div>
+          </div>
+
+          <nav class="nav">
+            <div class="nav-item"><span class="nav-dot"></span>今日</div>
+            <div class="nav-item active"><span class="nav-dot"></span>地图</div>
+            <div class="nav-item"><span class="nav-dot"></span>提醒</div>
+            <div class="nav-item"><span class="nav-dot"></span>我的</div>
+          </nav>
+
+          <div class="sidebar-note">
+            <h4>地图原则</h4>
+            <p>空间风险先看分布，再展开点位详情。所有点位都明确标为模型点，不与真实监测站混淆。</p>
+          </div>
+        </aside>
+
+        <main class="panel main">
+          <div class="toolbar">
+            <div class="search">
+              <strong>上海 · 搜索城市或区域</strong>
+              <span>徐汇区 / 静安区 / 浦东新区</span>
+            </div>
+            <div class="toolbar-badges">
+              <div class="badge">更新 08:10</div>
+              <div class="badge">模型点</div>
+            </div>
+          </div>
+
+          <div class="city-rail">
+            <div class="city-chip">上海 · 当前城市</div>
+            <div class="city-chip">徐汇区 · 已展开</div>
+            <div class="city-chip">图层：综合风险</div>
+          </div>
+
+          <section class="panel map-stage">
+            <div class="floating-actions">
+              <div class="float-btn">◎</div>
+              <div class="float-btn">i</div>
+            </div>
+
+            <div class="map-point one"></div>
+            <div class="map-point two"></div>
+            <div class="map-point three"></div>
+            <div class="map-point four"></div>
+
+            <div class="sheet">
+              <div class="sheet-head">
+                <div>
+                  <div class="risk-tag" style="background: rgba(241, 142, 60, 0.18); color: #9f4e17;">徐汇区 · 高风险</div>
+                  <h2>当前区域详情</h2>
+                  <p>模型推断显示该区域今天中午到下午的草类与杂草花粉更强，适合提前避开长时间户外活动。</p>
+                </div>
+                <div style="text-align:right">
+                  <strong style="font-size: 34px;">UPI 4.2</strong>
+                  <div style="color: var(--muted); font-size: 13px;">最近更新 08:10</div>
+                </div>
+              </div>
+
+              <div class="sheet-meta">
+                <div class="badge">来源：模型点</div>
+                <div class="badge">建议：今天午后减少长时间户外暴露</div>
+              </div>
+
+              <div class="sheet-grid">
+                <div class="sheet-stat">
+                  <span style="color: var(--muted); font-size: 13px;">树类</span>
+                  <strong>2</strong>
+                </div>
+                <div class="sheet-stat">
+                  <span style="color: var(--muted); font-size: 13px;">草类</span>
+                  <strong>4</strong>
+                </div>
+                <div class="sheet-stat">
+                  <span style="color: var(--muted); font-size: 13px;">杂草</span>
+                  <strong>4</strong>
+                </div>
+                <div class="sheet-stat">
+                  <span style="color: var(--muted); font-size: 13px;">来源</span>
+                  <strong style="font-size: 18px;">模型点</strong>
+                </div>
+              </div>
+
+              <div class="sheet-actions">
+                <button class="btn primary">设为关注城市</button>
+                <button class="btn secondary">查看今日详情</button>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <aside class="panel right">
+          <section class="card">
+            <h3>色阶说明</h3>
+            <p>地图热力层用统一风险色阶表达空间差异，用户无需先理解专业名词就能看出哪里更危险。</p>
+            <div class="legend-row">
+              <span style="font-size: 13px; color: var(--muted);">低</span>
+              <div class="legend-bar"></div>
+              <span style="font-size: 13px; color: var(--muted);">高</span>
+            </div>
+          </section>
+
+          <section class="card">
+            <h3>操作逻辑</h3>
+            <div class="mini-list">
+              <div class="mini-item">
+                <strong>1. 搜索城市</strong>
+                <p>先移动到用户关心的城市或区域，再让热力层与点位一起变化。</p>
+              </div>
+              <div class="mini-item">
+                <strong>2. 打开抽屉</strong>
+                <p>点击热点区域后，底部抽屉展示分项等级、更新时间和主操作。</p>
+              </div>
+              <div class="mini-item">
+                <strong>3. 回到首页</strong>
+                <p>从地图选定关注城市后，首页和提醒页沿用同一个主城市上下文。</p>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </body>
+</html>

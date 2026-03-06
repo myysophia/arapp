@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>02 Mobile Core / Catalog</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Fraunces:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+    <style>
+      :root {
+        --bg: #edf3f0;
+        --paper: rgba(255, 255, 255, 0.86);
+        --ink: #11202d;
+        --muted: #5b6a75;
+        --line: rgba(17, 32, 45, 0.09);
+        --brand: #0e7490;
+        --brand-deep: #0a5368;
+        --risk-0: #d6dde5;
+        --risk-1: #9edcb4;
+        --risk-2: #45c77d;
+        --risk-3: #f0cb48;
+        --risk-4: #f18e3c;
+        --risk-5: #d94d4d;
+        --shadow: 0 20px 50px rgba(17, 32, 45, 0.14);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "IBM Plex Sans", "PingFang SC", "Noto Sans SC", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 8% 10%, rgba(14, 116, 144, 0.15), transparent 28%),
+          radial-gradient(circle at 92% 10%, rgba(240, 203, 72, 0.14), transparent 18%),
+          linear-gradient(180deg, #f5f8f6 0%, var(--bg) 100%);
+      }
+
+      .page {
+        max-width: 1680px;
+        margin: 0 auto;
+        padding: 28px;
+        display: grid;
+        gap: 24px;
+      }
+
+      .header {
+        padding: 26px 28px;
+        border-radius: 28px;
+        background: var(--paper);
+        border: 1px solid rgba(255,255,255,0.72);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .header h1 {
+        margin: 12px 0 10px;
+        font-family: "Fraunces", serif;
+        font-size: 44px;
+        line-height: 1.06;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(14, 116, 144, 0.08);
+        color: var(--brand-deep);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .header p {
+        margin: 0;
+        max-width: 760px;
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 16px;
+      }
+
+      .rail {
+        display: flex;
+        gap: 24px;
+        align-items: flex-start;
+        overflow: hidden;
+      }
+
+      .device {
+        width: 320px;
+        padding: 10px;
+        border-radius: 40px;
+        background: #1c2b37;
+        box-shadow: var(--shadow);
+      }
+
+      .device-shell {
+        min-height: 680px;
+        padding: 14px 14px 16px;
+        border-radius: 32px;
+        background:
+          radial-gradient(circle at top left, rgba(14, 116, 144, 0.12), transparent 30%),
+          linear-gradient(180deg, #f8fbf9 0%, #eef4f1 100%);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .dynamic-island {
+        width: 110px;
+        height: 28px;
+        border-radius: 999px;
+        background: #0b1217;
+        margin: 0 auto 12px;
+      }
+
+      .screen {
+        display: grid;
+        gap: 14px;
+      }
+
+      .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .top small,
+      .screen p,
+      .tile p,
+      .list-row small,
+      .tab span {
+        color: var(--muted);
+      }
+
+      .screen h2 {
+        margin: 2px 0 0;
+        font-size: 28px;
+        line-height: 1.05;
+      }
+
+      .hero-card {
+        padding: 18px;
+        border-radius: 28px;
+        background: linear-gradient(145deg, rgba(14, 116, 144, 0.98), rgba(10, 83, 104, 0.98));
+        color: white;
+        display: grid;
+        gap: 14px;
+      }
+
+      .hero-card .tag {
+        display: inline-flex;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.14);
+        font-size: 12px;
+      }
+
+      .hero-card strong {
+        font-family: "Fraunces", serif;
+        font-size: 40px;
+        line-height: 1;
+      }
+
+      .hero-card p,
+      .hero-card small {
+        color: rgba(255,255,255,0.8);
+      }
+
+      .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .mini {
+        padding: 12px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.14);
+      }
+
+      .mini b {
+        display: block;
+        margin-top: 6px;
+        font-size: 20px;
+      }
+
+      .panel {
+        padding: 16px;
+        border-radius: 24px;
+        background: rgba(255,255,255,0.82);
+        border: 1px solid rgba(17,32,45,0.08);
+      }
+
+      .tile-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .tile {
+        padding: 12px;
+        border-radius: 18px;
+        background: white;
+        border: 1px solid var(--line);
+      }
+
+      .tile strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 24px;
+      }
+
+      .chart {
+        height: 110px;
+        border-radius: 18px;
+        background:
+          linear-gradient(180deg, rgba(14, 116, 144, 0.08), rgba(14, 116, 144, 0.01)),
+          repeating-linear-gradient(to top, transparent 0, transparent 21px, rgba(17, 32, 45, 0.05) 21px, rgba(17, 32, 45, 0.05) 22px);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .chart svg {
+        position: absolute;
+        inset: 0;
+      }
+
+      .map-box {
+        height: 360px;
+        border-radius: 28px;
+        position: relative;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 24% 34%, rgba(217, 77, 77, 0.5), transparent 12%),
+          radial-gradient(circle at 52% 24%, rgba(241, 142, 60, 0.48), transparent 14%),
+          radial-gradient(circle at 68% 54%, rgba(240, 203, 72, 0.42), transparent 14%),
+          linear-gradient(160deg, #edf4f1, #dfe9e6);
+      }
+
+      .map-box::before {
+        content: "";
+        position: absolute;
+        inset: 14px;
+        border-radius: 22px;
+        border: 1px solid rgba(17,32,45,0.06);
+        background:
+          linear-gradient(90deg, transparent 24%, rgba(17, 32, 45, 0.04) 25%, transparent 26%, transparent 49%, rgba(17, 32, 45, 0.04) 50%, transparent 51%, transparent 74%, rgba(17, 32, 45, 0.04) 75%, transparent 76%),
+          linear-gradient(transparent 24%, rgba(17, 32, 45, 0.04) 25%, transparent 26%, transparent 49%, rgba(17, 32, 45, 0.04) 50%, transparent 51%, transparent 74%, rgba(17, 32, 45, 0.04) 75%, transparent 76%);
+      }
+
+      .point {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        background: white;
+        border: 2px solid rgba(14, 116, 144, 0.3);
+        box-shadow: 0 8px 20px rgba(17, 32, 45, 0.18);
+      }
+
+      .point::after {
+        content: "";
+        position: absolute;
+        inset: 3px;
+        border-radius: inherit;
+        background: var(--brand);
+      }
+
+      .point.a { left: 28%; top: 34%; }
+      .point.b { left: 56%; top: 26%; }
+      .point.c { left: 67%; top: 54%; }
+
+      .bottom-sheet {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 12px;
+        padding: 16px;
+        border-radius: 24px;
+        background: rgba(255,255,255,0.94);
+        border: 1px solid rgba(17,32,45,0.08);
+        box-shadow: 0 14px 30px rgba(17, 32, 45, 0.14);
+      }
+
+      .bottom-sheet .grabber {
+        width: 44px;
+        height: 5px;
+        border-radius: 999px;
+        background: rgba(17, 32, 45, 0.16);
+        margin: 0 auto 12px;
+      }
+
+      .list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .list-row {
+        padding: 14px;
+        border-radius: 18px;
+        background: white;
+        border: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .tabbar {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        padding: 10px 12px;
+        border-radius: 24px;
+        background: rgba(255,255,255,0.94);
+        border: 1px solid rgba(17,32,45,0.08);
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .tab {
+        display: grid;
+        gap: 6px;
+        justify-items: center;
+        padding: 8px 4px;
+        border-radius: 16px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .tab.active {
+        background: rgba(14,116,144,0.1);
+        color: var(--brand-deep);
+      }
+
+      .tab i {
+        width: 18px;
+        height: 18px;
+        border-radius: 6px;
+        background: currentColor;
+        opacity: 0.9;
+      }
+
+      .login-stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .login-card {
+        padding: 14px;
+        border-radius: 18px;
+        background: white;
+        border: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .login-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: rgba(14,116,144,0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="header">
+        <div class="eyebrow">iOS delivery board</div>
+        <h1>移动端核心屏幕</h1>
+        <p>把前一轮的桌面展示稿收敛成 iPhone 级别的核心屏样机，方便你在 Figma 里直接改成原生 App 布局。重点是今日、地图、提醒、我的、登录五个核心视图。</p>
+      </section>
+
+      <section class="rail">
+        <article class="device">
+          <div class="device-shell">
+            <div class="dynamic-island"></div>
+            <div class="screen">
+              <div class="top">
+                <div>
+                  <small>今天 · 上海徐汇</small>
+                  <h2>今日</h2>
+                </div>
+                <small>07:10 更新</small>
+              </div>
+              <div class="hero-card">
+                <span class="tag">模型点推断</span>
+                <div>
+                  <strong>高风险</strong>
+                  <p>建议减少午后长时间户外停留。</p>
+                </div>
+                <div class="mini-grid">
+                  <div class="mini"><small>树</small><b>4</b></div>
+                  <div class="mini"><small>草</small><b>2</b></div>
+                  <div class="mini"><small>杂草</small><b>1</b></div>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="top" style="margin-bottom: 12px;">
+                  <strong>3 日趋势</strong>
+                  <small>风险走向</small>
+                </div>
+                <div class="chart">
+                  <svg viewBox="0 0 280 110" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M18 80 C62 70, 96 58, 132 44 S194 22, 220 46 S246 60, 262 34" fill="none" stroke="#0E7490" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="18" cy="80" r="5" fill="#45C77D"/>
+                    <circle cx="132" cy="44" r="5" fill="#F0CB48"/>
+                    <circle cx="220" cy="46" r="5" fill="#F18E3C"/>
+                    <circle cx="262" cy="34" r="5" fill="#D94D4D"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="panel">
+                <strong>行动建议</strong>
+                <p style="margin-top: 8px;">外出前佩戴口罩，回家后及时清洁面部与头发。</p>
+              </div>
+            </div>
+            <div class="tabbar">
+              <div class="tab active"><i></i><span>今日</span></div>
+              <div class="tab"><i></i><span>地图</span></div>
+              <div class="tab"><i></i><span>提醒</span></div>
+              <div class="tab"><i></i><span>我的</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="device">
+          <div class="device-shell">
+            <div class="dynamic-island"></div>
+            <div class="screen">
+              <div class="top">
+                <div>
+                  <small>上海市 · 模型覆盖层</small>
+                  <h2>地图</h2>
+                </div>
+                <small>图层开</small>
+              </div>
+              <div class="panel" style="padding: 12px;">
+                <div class="list-row" style="padding: 12px 14px;">
+                  <div>
+                    <strong>搜索城市</strong>
+                    <small>上海 · 杭州 · 苏州</small>
+                  </div>
+                  <span class="eyebrow" style="font-size:11px;">搜索</span>
+                </div>
+              </div>
+              <div class="map-box">
+                <div class="point a"></div>
+                <div class="point b"></div>
+                <div class="point c"></div>
+                <div class="bottom-sheet">
+                  <div class="grabber"></div>
+                  <div class="top">
+                    <div>
+                      <strong>徐汇区模型点</strong>
+                      <small>并非真实监测站</small>
+                    </div>
+                    <span class="eyebrow" style="font-size:11px;">高风险</span>
+                  </div>
+                  <div class="tile-grid" style="margin-top: 12px;">
+                    <div class="tile"><small>树花粉</small><strong>4</strong></div>
+                    <div class="tile"><small>置信度</small><strong>0.81</strong></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tabbar">
+              <div class="tab"><i></i><span>今日</span></div>
+              <div class="tab active"><i></i><span>地图</span></div>
+              <div class="tab"><i></i><span>提醒</span></div>
+              <div class="tab"><i></i><span>我的</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="device">
+          <div class="device-shell">
+            <div class="dynamic-island"></div>
+            <div class="screen">
+              <div class="top">
+                <div>
+                  <small>阈值与送达规则</small>
+                  <h2>提醒</h2>
+                </div>
+                <small>已开启</small>
+              </div>
+              <div class="hero-card" style="background: linear-gradient(145deg, #0a5368, #114960);">
+                <span class="tag">单城市 MVP</span>
+                <div>
+                  <strong>3 级触发</strong>
+                  <p>当总体风险达到中等级及以上时提醒。</p>
+                </div>
+              </div>
+              <div class="panel">
+                <strong>阈值</strong>
+                <div class="mini-grid" style="margin-top: 12px;">
+                  <div class="mini" style="background: rgba(214,221,229,0.5); color: var(--ink);"><small>0</small><b>极低</b></div>
+                  <div class="mini" style="background: rgba(240,203,72,0.18); color: var(--ink);"><small>3</small><b>当前</b></div>
+                  <div class="mini" style="background: rgba(217,77,77,0.18); color: var(--ink);"><small>5</small><b>很高</b></div>
+                </div>
+              </div>
+              <div class="panel">
+                <strong>最近 7 天</strong>
+                <div class="list" style="margin-top: 12px;">
+                  <div class="list-row"><div><strong>周五 07:00</strong><small>树花粉升至 4 级</small></div><small>已送达</small></div>
+                  <div class="list-row"><div><strong>周三 07:00</strong><small>总体风险达到 3 级</small></div><small>已送达</small></div>
+                </div>
+              </div>
+            </div>
+            <div class="tabbar">
+              <div class="tab"><i></i><span>今日</span></div>
+              <div class="tab"><i></i><span>地图</span></div>
+              <div class="tab active"><i></i><span>提醒</span></div>
+              <div class="tab"><i></i><span>我的</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="device">
+          <div class="device-shell">
+            <div class="dynamic-island"></div>
+            <div class="screen">
+              <div class="top">
+                <div>
+                  <small>账户与偏好</small>
+                  <h2>我的</h2>
+                </div>
+                <small>已登录</small>
+              </div>
+              <div class="hero-card" style="background: linear-gradient(145deg, #0a5368, #0e7490);">
+                <span class="tag">Google 已绑定</span>
+                <div>
+                  <strong>王九日</strong>
+                  <p>同步语言偏好、提醒设置和设备状态。</p>
+                </div>
+              </div>
+              <div class="panel">
+                <strong>偏好设置</strong>
+                <div class="list" style="margin-top: 12px;">
+                  <div class="list-row"><div><strong>语言</strong><small>简体中文 / English</small></div><small>zh-Hans</small></div>
+                  <div class="list-row"><div><strong>单位</strong><small>公制与日期格式</small></div><small>Metric</small></div>
+                  <div class="list-row"><div><strong>隐私</strong><small>删除提醒数据与令牌</small></div><small>入口</small></div>
+                </div>
+              </div>
+            </div>
+            <div class="tabbar">
+              <div class="tab"><i></i><span>今日</span></div>
+              <div class="tab"><i></i><span>地图</span></div>
+              <div class="tab"><i></i><span>提醒</span></div>
+              <div class="tab active"><i></i><span>我的</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="device">
+          <div class="device-shell">
+            <div class="dynamic-island"></div>
+            <div class="screen">
+              <div class="top">
+                <div>
+                  <small>匿名先用，登录可选</small>
+                  <h2>登录</h2>
+                </div>
+                <small>可跳过</small>
+              </div>
+              <div class="panel" style="display:grid; gap:14px;">
+                <img src="./logo.svg" alt="Pollen Arc 标识" style="width:64px; height:64px;" />
+                <div>
+                  <strong style="font-family:'Fraunces', serif; font-size:32px;">Pollen Arc</strong>
+                  <p style="margin-top:8px;">同步提醒设置和偏好，不阻断基础查询流程。</p>
+                </div>
+              </div>
+              <div class="login-stack">
+                <div class="login-card"><div style="display:flex; align-items:center; gap:12px;"><div class="login-icon"></div><strong>继续使用 Google</strong></div><small>推荐</small></div>
+                <div class="login-card"><div style="display:flex; align-items:center; gap:12px;"><div class="login-icon"></div><strong>继续使用 GitHub</strong></div><small>开发者</small></div>
+                <div class="login-card"><div style="display:flex; align-items:center; gap:12px;"><div class="login-icon"></div><strong>使用 Apple 登录</strong></div><small>审核友好</small></div>
+              </div>
+              <div class="panel">
+                <strong>匿名继续</strong>
+                <p style="margin-top: 8px;">不登录也可以查看城市风险，登录仅用于同步和恢复配置。</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>03 Main Screens / Onboarding Flow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Fraunces:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+    <style>
+      :root {
+        --bg: #f3f6f3;
+        --ink: #11202d;
+        --muted: #5b6a75;
+        --line: rgba(17, 32, 45, 0.1);
+        --brand: #0e7490;
+        --brand-deep: #0a5368;
+        --paper: rgba(255, 255, 255, 0.84);
+        --shadow: 0 18px 40px rgba(17, 32, 45, 0.12);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "IBM Plex Sans", "PingFang SC", "Noto Sans SC", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 10% 10%, rgba(14, 116, 144, 0.16), transparent 28%),
+          radial-gradient(circle at 88% 10%, rgba(240, 203, 72, 0.14), transparent 20%),
+          linear-gradient(180deg, #eef4f1 0%, var(--bg) 100%);
+      }
+
+      .page {
+        width: max-content;
+        padding: 28px;
+      }
+
+      .rail {
+        display: flex;
+        gap: 28px;
+        align-items: stretch;
+      }
+
+      .screen {
+        width: 390px;
+        min-height: 844px;
+        padding: 28px 24px 24px;
+        border-radius: 36px;
+        background: var(--paper);
+        backdrop-filter: blur(18px);
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .screen.primary {
+        background:
+          linear-gradient(155deg, rgba(14, 116, 144, 0.96), rgba(10, 83, 104, 0.96)),
+          var(--brand);
+        color: white;
+      }
+
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .brand img {
+        width: 40px;
+        height: 40px;
+      }
+
+      .brand-title {
+        font-family: "Fraunces", serif;
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .skip {
+        font-size: 13px;
+        color: inherit;
+        opacity: 0.72;
+      }
+
+      .art {
+        margin: 34px 0 28px;
+        border-radius: 28px;
+        height: 260px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .primary .art {
+        background:
+          radial-gradient(circle at 30% 30%, rgba(255,255,255,0.16), transparent 18%),
+          radial-gradient(circle at 72% 42%, rgba(240,203,72,0.36), transparent 20%),
+          linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+      }
+
+      .secondary .art {
+        background:
+          radial-gradient(circle at 28% 38%, rgba(14, 116, 144, 0.18), transparent 20%),
+          radial-gradient(circle at 76% 28%, rgba(240, 203, 72, 0.24), transparent 16%),
+          linear-gradient(180deg, rgba(255,255,255,0.95), rgba(239,246,245,0.9));
+        border: 1px solid var(--line);
+      }
+
+      .orb {
+        position: absolute;
+        border-radius: 999px;
+      }
+
+      .orb.a { width: 120px; height: 120px; left: 36px; top: 52px; background: rgba(255,255,255,0.16); }
+      .orb.b { width: 88px; height: 88px; right: 44px; top: 76px; background: rgba(255,255,255,0.22); }
+      .orb.c { width: 140px; height: 140px; left: 110px; bottom: 26px; background: rgba(240,203,72,0.22); }
+
+      .secondary .orb.a { background: rgba(14, 116, 144, 0.14); }
+      .secondary .orb.b { background: rgba(69, 199, 125, 0.18); }
+      .secondary .orb.c { background: rgba(240, 203, 72, 0.2); }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: 38px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      p {
+        margin: 0;
+        line-height: 1.65;
+        font-size: 15px;
+      }
+
+      .primary p {
+        color: rgba(255,255,255,0.84);
+      }
+
+      .secondary p {
+        color: var(--muted);
+      }
+
+      .bullet-list {
+        margin-top: 22px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .bullet {
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.1);
+      }
+
+      .secondary .bullet {
+        background: white;
+        border: 1px solid var(--line);
+      }
+
+      .bullet strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 15px;
+      }
+
+      .bullet span {
+        font-size: 13px;
+        line-height: 1.55;
+        color: inherit;
+        opacity: 0.8;
+      }
+
+      .actions {
+        margin-top: auto;
+        display: grid;
+        gap: 12px;
+      }
+
+      .btn {
+        width: 100%;
+        border: 0;
+        border-radius: 18px;
+        padding: 15px 18px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .primary .btn.main {
+        background: white;
+        color: var(--brand-deep);
+      }
+
+      .primary .btn.alt {
+        background: rgba(255,255,255,0.12);
+        color: white;
+      }
+
+      .secondary .btn.main {
+        background: var(--brand);
+        color: white;
+      }
+
+      .secondary .btn.alt {
+        background: rgba(14, 116, 144, 0.1);
+        color: var(--brand-deep);
+      }
+
+      .footer-note {
+        margin-top: 10px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .progress {
+        display: flex;
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .progress-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.28);
+      }
+
+      .secondary .progress-dot {
+        background: rgba(17, 32, 45, 0.14);
+      }
+
+      .progress-dot.active {
+        width: 28px;
+        border-radius: 999px;
+        background: white;
+      }
+
+      .secondary .progress-dot.active {
+        background: var(--brand);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="rail">
+        <section class="screen primary">
+          <div class="top">
+            <div class="brand">
+              <img src="./logo.svg" alt="Pollen Arc logo" />
+              <div class="brand-title">Pollen Arc</div>
+            </div>
+            <div class="skip">跳过</div>
+          </div>
+
+          <div class="art">
+            <div class="orb a"></div>
+            <div class="orb b"></div>
+            <div class="orb c"></div>
+          </div>
+
+          <h1>把看不见的花粉风险，变成今天就能行动的提醒</h1>
+          <p>首页先给你一个明确结论，地图帮你看空间差异，提醒功能让你在高风险到来前提前准备。</p>
+
+          <div class="bullet-list">
+            <div class="bullet">
+              <strong>结论优先</strong>
+              <span>先知道今天是否危险，再看细分花粉和趋势。</span>
+            </div>
+            <div class="bullet">
+              <strong>地图可解释</strong>
+              <span>所有区域结果都明确为模型点，不与真实监测站混淆。</span>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn main">继续</button>
+            <button class="btn alt">先跳过</button>
+          </div>
+          <div class="progress">
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+          </div>
+        </section>
+
+        <section class="screen secondary">
+          <div class="top">
+            <div class="brand">
+              <img src="./logo.svg" alt="Pollen Arc logo" />
+              <div class="brand-title">Pollen Arc</div>
+            </div>
+            <div class="skip">第 2 步</div>
+          </div>
+
+          <div class="art">
+            <div class="orb a"></div>
+            <div class="orb b"></div>
+            <div class="orb c"></div>
+          </div>
+
+          <h1>允许定位，让首页和地图直接落到你关心的城市</h1>
+          <p>如果你不想授权，也可以手动选城。定位只用于默认城市与地图中心，不会强制阻断主流程。</p>
+
+          <div class="bullet-list">
+            <div class="bullet">
+              <strong>更少操作</strong>
+              <span>打开应用就能看到默认城市的今日风险和地图热力层。</span>
+            </div>
+            <div class="bullet">
+              <strong>随时可改</strong>
+              <span>设置页里可以切换默认城市，也可以完全关闭定位。</span>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn main">允许定位</button>
+            <button class="btn alt">手动选择城市</button>
+          </div>
+          <div class="progress">
+            <div class="progress-dot"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+          </div>
+        </section>
+
+        <section class="screen secondary">
+          <div class="top">
+            <div class="brand">
+              <img src="./logo.svg" alt="Pollen Arc logo" />
+              <div class="brand-title">Pollen Arc</div>
+            </div>
+            <div class="skip">第 3 步</div>
+          </div>
+
+          <div class="art">
+            <div class="orb a"></div>
+            <div class="orb b"></div>
+            <div class="orb c"></div>
+          </div>
+
+          <h1>允许通知，在高风险到来前收到一次简洁提醒</h1>
+          <p>提醒只在你设置的阈值达到时触发，夜间静默时段不会重复打扰。你也可以稍后在提醒页再开启。</p>
+
+          <div class="bullet-list">
+            <div class="bullet">
+              <strong>阈值可控</strong>
+              <span>首版支持 0 到 5 的风险阈值，适合不同敏感度用户。</span>
+            </div>
+            <div class="bullet">
+              <strong>不打断主流程</strong>
+              <span>即使现在不授权，也仍然可以继续浏览首页、地图和提醒页。</span>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn main">允许通知</button>
+            <button class="btn alt">稍后设置</button>
+          </div>
+
+          <div class="footer-note">基础功能无需登录。登录只用于同步城市和提醒设置。</div>
+          <div class="progress">
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot active"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>
