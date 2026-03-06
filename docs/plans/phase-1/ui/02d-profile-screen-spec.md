@@ -60,6 +60,10 @@
 ## 9. 依赖与里程碑
 - 依赖：认证设计、i18n 规格、隐私合规文档、API 偏好接口。
 - 里程碑：该文档通过后可直接进入“我的”页高保真与开发。
+- 对应 Figma 页面：`03 Main Screens / Profile Account`
+- 关联登录页：`03 Main Screens / Auth Login`
+- 关联目录页：`02 Mobile Core / Catalog`
+- 关联状态页：`04 States & Overlays / Catalog`
 
 ## 10. 假设与默认值
 - 未登录为默认状态。
@@ -118,11 +122,14 @@
 
 ## 16. Figma 搭建建议
 - Frame：iPhone 15 Pro 主稿。
-- 图层命名：
-  - `Profile/Header`
-  - `Profile/AccountStatusCard`
-  - `Profile/AuthButtonGroup`
-  - `Profile/PreferenceSection`
-  - `Profile/PrivacySection`
-  - `Profile/AboutSection`
-  - `Profile/DangerActions`
+- 页面级 frame 命名：
+  - `Profile / Account / Header`
+  - `Profile / Account / Content`
+  - `Profile / Account / Danger Zone`
+- 共享组件命名：
+  - `AccountStatusCard`
+  - `AuthButtonGroup`
+  - `PreferenceRow`
+  - `PrivacyMenuCard`
+  - `AboutCard`
+  - `DangerActionButton`

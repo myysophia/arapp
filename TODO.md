@@ -83,13 +83,14 @@
   - 成功标准：Figma 内形成 `00 Cover / 01 Foundations / 02 Mobile Core / 03 Main Screens / 04 States & Overlays`
   - 完成说明：已新建整理版真源文件 `cf5PnK1WSe5IYRQNGT81fu`，旧文件 `l629AeywT4tJwH7B3F2EJM` 降级为历史素材源
 
-- [ ] T02 - 回写 UI 文档与 Figma 命名映射
+- [x] T02 - 回写 UI 文档与 Figma 命名映射
   - 建议负责人：Agent A
   - 预计时长：0.5 天
   - 依赖：T01
   - 输出物：更新 `02-ui-ux-spec.md` 和 `ui/02a-02d` 文档中的页面命名与组件命名
   - 主要文件：`/Users/ninesun/projects/arapp/docs/plans/phase-1/02-ui-ux-spec.md`、`/Users/ninesun/projects/arapp/docs/plans/phase-1/ui/`
   - 成功标准：文档中的页面名、组件名与 Figma 完全一致
+  - 完成说明：已回写新真源 `cf5PnK1WSe5IYRQNGT81fu`、页面映射 `03 Main Screens / ...` 与共享组件命名规则
 
 - [ ] T03 - 初始化 iOS 工程骨架与目录约定
   - 建议负责人：Agent B
