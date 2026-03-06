@@ -1,0 +1,18 @@
+[
+  {
+    "id": "6f222b19-b7c9-4baa-8661-2dd6905ddf00",
+    "name": "上海",
+    "country_code": "CN",
+    "admin1": "上海市",
+    "lat": 31.2304,
+    "lng": 121.4737
+  },
+  {
+    "id": "dd767aa5-460c-4227-ad92-f8a6ff3ec45e",
+    "name": "杭州",
+    "country_code": "CN",
+    "admin1": "浙江省",
+    "lat": 30.2741,
+    "lng": 120.1551
+  }
+]
