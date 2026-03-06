@@ -60,6 +60,9 @@
 ## 9. 依赖与里程碑
 - 依赖：总 UI 文档、API 契约、i18n key、提醒页 CTA 跳转定义。
 - 里程碑：该文档通过后，可直接进入首页线框、Figma 高保真和静态前端实现。
+- 对应 Figma 页面：`03 Main Screens / Home Today`
+- 关联目录页：`02 Mobile Core / Catalog`
+- 关联状态页：`04 States & Overlays / Catalog`
 
 ## 10. 假设与默认值
 - 默认城市优先使用用户上次选择的城市。
@@ -127,10 +130,13 @@
 ## 15. Figma 搭建建议
 - Frame：iPhone 15 Pro 尺寸为主，补 iPhone SE 高度校验。
 - 使用 Auto Layout 组织页面，不使用绝对定位堆卡片。
-- 组件命名：
-  - `Home/TopBar`
-  - `Home/RiskHeroCard`
-  - `Home/BreakdownCard`
-  - `Home/TrendCard`
-  - `Home/AdviceCard`
-  - `Home/SourceCard`
+- 页面级 frame 命名：
+  - `Home / Today / Header`
+  - `Home / Today / Content`
+  - `Home / Today / Secondary Section`
+- 共享组件命名：
+  - `RiskHeroCard`
+  - `PollenBreakdownBar`
+  - `TrendMiniChart`
+  - `ActionAdviceCard`
+  - `SourceTransparencyCard`

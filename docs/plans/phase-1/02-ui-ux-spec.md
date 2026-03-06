@@ -119,6 +119,25 @@
 - 当前 Tab 使用品牌主色，未选中使用 `#64748B`。
 - Tab 标签长度控制在 2-4 个中文字符或 4-8 个英文字符。
 
+### 13.3 Figma 页面映射
+- 当前整理版 Figma 文件：`cf5PnK1WSe5IYRQNGT81fu`
+- 页面分组：
+  - `00 Cover / File Guide`
+  - `01 Foundations / System`
+  - `02 Mobile Core / Catalog`
+  - `03 Main Screens / Home Today`
+  - `03 Main Screens / Map Coverage`
+  - `03 Main Screens / Alerts Threshold`
+  - `03 Main Screens / Profile Account`
+  - `03 Main Screens / Auth Login`
+  - `03 Main Screens / Onboarding Flow`
+  - `04 States & Overlays / Catalog`
+- 使用规则：
+  - `02 Mobile Core / Catalog` 用于移动端主流程总览与开发对照。
+  - `03 Main Screens / ...` 用于单页实现真源。
+  - `04 States & Overlays / Catalog` 用于异常态、空态和弹层真源。
+  - 旧文件 `l629AeywT4tJwH7B3F2EJM` 仅作为历史素材参考，不再作为实现真源。
+
 ## 14. 页面级线框规格
 ### 14.1 Onboarding
 #### 页面目标
@@ -225,6 +244,18 @@
 ### 15.7 StateView
 - props：`stateType`、`titleKey`、`bodyKey`、`ctaKey`
 - 类型：`empty/error/offline/no_permission/no_notification`
+
+### 15.8 Figma 组件命名规则
+- Figma 中的组件命名以全局组件名为准，不再沿用旧的页面前缀式历史命名。
+- 全局组件真源：
+  - `RiskHeroCard`
+  - `PollenBreakdownBar`
+  - `TrendMiniChart`
+  - `ActionAdviceCard`
+  - `SourceTransparencyCard`
+  - `AuthProviderButton`
+  - `StateView`
+- 页面内局部结构允许使用 `Home / Today / Header`、`Map / Coverage / Bottom Sheet` 这类页面级 frame 名称，但共享组件必须回到全局组件名。
 
 ## 16. 状态机
 ### 16.1 首页状态

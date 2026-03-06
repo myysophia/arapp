@@ -57,6 +57,9 @@
 ## 9. 依赖与里程碑
 - 依赖：地图 SDK、位置搜索接口、来源透明文案、首页“查看今日详情”跳转定义。
 - 里程碑：地图页文档通过后，可直接进入交互稿与 Figma 结构稿。
+- 对应 Figma 页面：`03 Main Screens / Map Coverage`
+- 关联目录页：`02 Mobile Core / Catalog`
+- 关联状态页：`04 States & Overlays / Catalog`
 
 ## 10. 假设与默认值
 - 首版使用 MapKit 标准底图。
@@ -132,10 +135,15 @@
 
 ## 16. Figma 搭建建议
 - Frame：iPhone 15 Pro 主设计稿，补 1 个小屏校验 frame。
-- 图层命名：
-  - `Map/TopSearch`
-  - `Map/HeatLayer`
-  - `Map/FloatingActions`
-  - `Map/BottomSheet`
-  - `Map/LegendSheet`
+- 页面级 frame 命名：
+  - `Map / Coverage / Header`
+  - `Map / Coverage / Map Canvas`
+  - `Map / Coverage / Bottom Sheet`
+  - `Map / Coverage / Source Sheet`
+- 共享组件命名：
+  - `MapSearchBar`
+  - `MapHeatLayer`
+  - `MapFloatingActions`
+  - `MapPointBottomSheet`
+  - `StateView`
 - 底部抽屉用 component variants 表达：`collapsed / half / error`。
