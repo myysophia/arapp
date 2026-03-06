@@ -1,0 +1,28 @@
+{
+  "days": [
+    {
+      "id": "2026-03-06",
+      "date": "2026-03-06",
+      "risk_overall": 4,
+      "tree_level": 2,
+      "grass_level": 4,
+      "weed_level": 4
+    },
+    {
+      "id": "2026-03-07",
+      "date": "2026-03-07",
+      "risk_overall": 5,
+      "tree_level": 3,
+      "grass_level": 5,
+      "weed_level": 4
+    },
+    {
+      "id": "2026-03-08",
+      "date": "2026-03-08",
+      "risk_overall": 3,
+      "tree_level": 2,
+      "grass_level": 3,
+      "weed_level": 2
+    }
+  ]
+}
