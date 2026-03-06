@@ -1,0 +1,54 @@
+name: ArApp
+options:
+  bundleIdPrefix: com.myysophia
+  deploymentTarget:
+    iOS: "17.0"
+settings:
+  base:
+    PRODUCT_NAME: ArApp
+    SWIFT_VERSION: 6.0
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 0.1.0
+    INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+    INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+targets:
+  ArApp:
+    type: application
+    platform: iOS
+    sources:
+      - App
+      - Features
+      - SharedUI
+      - Models
+      - Services
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.myysophia.arapp
+        INFOPLIST_FILE: App/Info.plist
+        CODE_SIGN_STYLE: Automatic
+    scheme:
+      testTargets:
+        - ArAppTests
+        - ArAppUITests
+  ArAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - Tests/Unit
+    dependencies:
+      - target: ArApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.myysophia.arapp.tests
+        GENERATE_INFOPLIST_FILE: YES
+  ArAppUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - Tests/UI
+    dependencies:
+      - target: ArApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.myysophia.arapp.uitests
+        GENERATE_INFOPLIST_FILE: YES
