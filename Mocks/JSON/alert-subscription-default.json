@@ -1,0 +1,13 @@
+{
+  "id": "f8149110-c3b5-490e-a398-6759d6388b27",
+  "user_id": "c6e87c87-5899-4f2d-8ba0-1624f54478f9",
+  "location_id": "6f222b19-b7c9-4baa-8661-2dd6905ddf00",
+  "threshold_level": 3,
+  "enabled": true,
+  "quiet_hours": {
+    "enabled": true,
+    "start": "22:00",
+    "end": "07:00"
+  },
+  "updated_at": "2026-03-06T08:10:00Z"
+}
