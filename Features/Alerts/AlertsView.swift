@@ -2,36 +2,35 @@ import SwiftUI
 
 struct AlertsView: View {
     @Environment(AppState.self) private var appState
+    @State private var screenModel: AlertsScreenModel
 
-    @State private var state = AlertsScreenState.demo
+    init(screenModel: AlertsScreenModel = AlertsScreenModel()) {
+        _screenModel = State(initialValue: screenModel)
+    }
+
+    private var dataModeBinding: Binding<AlertsScreenModel.DataMode> {
+        Binding(
+            get: { screenModel.dataMode },
+            set: { screenModel.dataMode = $0 }
+        )
+    }
+
+    private var mockScenarioBinding: Binding<AlertsScreenModel.MockScenario> {
+        Binding(
+            get: { screenModel.mockScenario },
+            set: { screenModel.mockScenario = $0 }
+        )
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                AlertsHeader(state: state)
-                AlertLocationCard(state: state)
-                AlertToggleCard(isEnabled: state.subscription.enabled) { enabled in
-                    state.subscription = state.subscription.withEnabled(enabled)
-                }
-                ThresholdSliderCard(level: state.subscription.thresholdLevel.uiLevel) { newLevel in
-                    state.subscription = state.subscription.withThreshold(newLevel)
-                }
-                QuietHoursCard(quietHours: state.subscription.quietHours, isEnabled: state.subscription.enabled)
-                AlertHistoryCard(items: state.history)
-
-                if state.notificationPermission != .granted {
-                    NotificationPermissionCard(permissionState: state.notificationPermission)
-                }
-
-                if state.auth.isAnonymous {
-                    LoginSyncHintCard {
-                        appState.route = .login
-                    }
-                }
-
-                SaveSettingsButton(isEnabled: state.subscription.enabled) {
-                    appState.selectedTab = .profile
-                }
+                AlertsModeCard(
+                    dataMode: dataModeBinding,
+                    mockScenario: mockScenarioBinding,
+                    reloadAction: { Task { await screenModel.reload() } }
+                )
+                contentSection
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.vertical, AppSpacing.lg)
@@ -39,6 +38,175 @@ struct AlertsView: View {
         .background(AppColor.background.ignoresSafeArea())
         .navigationTitle(AppTab.alerts.title)
         .navigationBarTitleDisplayMode(.large)
+        .task(id: screenModel.reloadKey) {
+            await screenModel.reload()
+        }
+        .refreshable {
+            await screenModel.reload()
+        }
+    }
+
+    @ViewBuilder
+    private var contentSection: some View {
+        switch screenModel.contentState {
+        case .loading:
+            AlertsStatusCard(
+                title: "正在加载提醒配置",
+                detail: "正在同步阈值、静默时段和最近提醒记录。",
+                systemImage: "bell.badge"
+            )
+        case let .empty(title, detail):
+            AlertsStatusCard(
+                title: title,
+                detail: detail,
+                systemImage: "tray",
+                actionTitle: "切回已配置",
+                action: {
+                    screenModel.dataMode = .mock
+                    screenModel.mockScenario = .configured
+                }
+            )
+        case let .failure(title, detail, retryable):
+            AlertsStatusCard(
+                title: title,
+                detail: detail,
+                systemImage: "wifi.exclamationmark",
+                actionTitle: retryable ? "重新加载" : nil,
+                action: retryable ? { Task { await screenModel.reload() } } : nil
+            )
+        case let .success(state):
+            AlertsConfiguredContent(
+                state: state,
+                onToggle: { screenModel.updateEnabled($0) },
+                onThresholdChange: { screenModel.updateThreshold($0) },
+                onLogin: { appState.route = .login },
+                onSave: { appState.selectedTab = .profile }
+            )
+        }
+    }
+}
+
+private struct AlertsModeCard: View {
+    @Binding var dataMode: AlertsScreenModel.DataMode
+    @Binding var mockScenario: AlertsScreenModel.MockScenario
+    let reloadAction: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("提醒数据模式")
+                        .font(AppTypography.titleCard)
+                        .foregroundStyle(AppColor.textPrimary)
+
+                    Text("当前阶段校验提醒配置在 Mock 和 Client 模式下的状态完整性。")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColor.textSecondary)
+                }
+
+                Spacer()
+
+                Button("重载") {
+                    reloadAction()
+                }
+                .font(AppTypography.captionStrong)
+                .foregroundStyle(AppColor.brand)
+            }
+
+            Picker("提醒模式", selection: $dataMode) {
+                ForEach(AlertsScreenModel.DataMode.allCases) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            if dataMode == .mock {
+                Picker("Mock 场景", selection: $mockScenario) {
+                    ForEach(AlertsScreenModel.MockScenario.allCases) { scenario in
+                        Text(scenario.title).tag(scenario)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+        }
+        .padding(AppSpacing.lg)
+        .background(
+            RoundedRectangle(cornerRadius: AppRadius.lg)
+                .fill(AppColor.surface)
+                .shadow(color: AppShadow.cardColor, radius: AppShadow.cardRadius, x: AppShadow.cardX, y: AppShadow.cardY)
+        )
+    }
+}
+
+private struct AlertsConfiguredContent: View {
+    let state: AlertsScreenState
+    let onToggle: (Bool) -> Void
+    let onThresholdChange: (AppRiskLevel) -> Void
+    let onLogin: () -> Void
+    let onSave: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            AlertsHeader(state: state)
+            AlertLocationCard(state: state)
+            AlertToggleCard(isEnabled: state.subscription.enabled, onToggle: onToggle)
+            ThresholdSliderCard(level: state.subscription.thresholdLevel.uiLevel, onChange: onThresholdChange)
+            QuietHoursCard(quietHours: state.subscription.quietHours, isEnabled: state.subscription.enabled)
+            AlertHistoryCard(items: state.history)
+
+            if state.notificationPermission != .granted {
+                NotificationPermissionCard(permissionState: state.notificationPermission)
+            }
+
+            if state.auth.isAnonymous {
+                LoginSyncHintCard(onLogin: onLogin)
+            }
+
+            SaveSettingsButton(isEnabled: state.subscription.enabled, onSave: onSave)
+        }
+    }
+}
+
+private struct AlertsStatusCard: View {
+    let title: String
+    let detail: String
+    let systemImage: String
+    let actionTitle: String?
+    let action: (() -> Void)?
+
+    init(title: String, detail: String, systemImage: String, actionTitle: String? = nil, action: (() -> Void)? = nil) {
+        self.title = title
+        self.detail = detail
+        self.systemImage = systemImage
+        self.actionTitle = actionTitle
+        self.action = action
+    }
+
+    var body: some View {
+        AlertsCardContainer(title: title, subtitle: detail) {
+            VStack(alignment: .leading, spacing: AppSpacing.md) {
+                Label(title, systemImage: systemImage)
+                    .font(AppTypography.bodyStrong)
+                    .foregroundStyle(AppColor.textPrimary)
+
+                Text(detail)
+                    .font(AppTypography.body)
+                    .foregroundStyle(AppColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let actionTitle, let action {
+                    Button(actionTitle) {
+                        action()
+                    }
+                    .buttonStyle(.plain)
+                    .font(AppTypography.bodyStrong)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.sm)
+                    .background(AppColor.brand, in: RoundedRectangle(cornerRadius: AppRadius.md))
+                }
+            }
+        }
     }
 }
 
@@ -135,18 +303,35 @@ private struct AlertToggleCard: View {
             title: "提醒开关",
             subtitle: isEnabled ? "每天 07:00 检查阈值并在命中时推送" : "关闭后仍保留配置，但不会发送提醒"
         ) {
-            Toggle(isOn: Binding(get: { isEnabled }, set: onToggle)) {
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text(isEnabled ? "风险提醒已启用" : "风险提醒已关闭")
-                        .font(AppTypography.bodyStrong)
-                        .foregroundStyle(AppColor.textPrimary)
+            Button {
+                onToggle(!isEnabled)
+            } label: {
+                HStack(spacing: AppSpacing.md) {
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        Text(isEnabled ? "风险提醒已启用" : "风险提醒已关闭")
+                            .font(AppTypography.bodyStrong)
+                            .foregroundStyle(AppColor.textPrimary)
 
-                    Text("通知权限与静默时段会影响最终触达")
-                        .font(AppTypography.caption)
-                        .foregroundStyle(AppColor.textSecondary)
+                        Text("通知权限与静默时段会影响最终触达")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColor.textSecondary)
+                    }
+
+                    Spacer()
+
+                    ZStack(alignment: isEnabled ? .trailing : .leading) {
+                        Capsule()
+                            .fill(isEnabled ? AppColor.brand : AppColor.line)
+                            .frame(width: 52, height: 32)
+
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: 28, height: 28)
+                            .padding(2)
+                    }
                 }
             }
-            .tint(AppColor.brand)
+            .buttonStyle(.plain)
         }
     }
 }
@@ -405,7 +590,7 @@ private struct AlertsCardContainer<Content: View>: View {
     }
 }
 
-private struct AlertsScreenState {
+struct AlertsScreenState {
     var auth: AuthMe
     var locationName: String
     var subscription: AlertSubscription
@@ -439,7 +624,7 @@ private struct AlertsScreenState {
     }
 }
 
-private enum AlertsNotificationPermission {
+enum AlertsNotificationPermission {
     case granted
     case denied
     case notDetermined
@@ -478,7 +663,12 @@ private enum AlertsNotificationPermission {
     }
 }
 
-private extension AlertSubscription {
+extension AuthMe {
+    static let demoAnonymous = AuthMe(userID: nil, isAnonymous: true, providers: [], locale: "zh-Hans", region: "CN", unitSystem: .metric)
+    static let demoSignedIn = AuthMe(userID: UUID(), isAnonymous: false, providers: [.apple], locale: "zh-Hans", region: "CN", unitSystem: .metric)
+}
+
+extension AlertSubscription {
     static let demo = AlertSubscription(
         id: UUID(),
         userID: nil,
@@ -516,10 +706,6 @@ private extension AlertSubscription {
             updatedAt: updatedAt
         )
     }
-}
-
-private extension AuthMe {
-    static let demoAnonymous = AuthMe(userID: nil, isAnonymous: true, providers: [], locale: "zh-Hans", region: "CN", unitSystem: .metric)
 }
 
 private extension AlertHistoryItem {
