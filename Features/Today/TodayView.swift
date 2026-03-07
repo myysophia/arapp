@@ -59,45 +59,7 @@ private struct TodayBreakdownCard: View {
 
     var body: some View {
         TodayCardContainer(title: "分项概览", subtitle: "树 / 草 / 杂草") {
-            VStack(spacing: AppSpacing.md) {
-                TodayBreakdownRow(title: "树", level: summary.treeLevel.uiLevel)
-                TodayBreakdownRow(title: "草", level: summary.grassLevel.uiLevel)
-                TodayBreakdownRow(title: "杂草", level: summary.weedLevel.uiLevel)
-            }
-        }
-    }
-}
-
-private struct TodayBreakdownRow: View {
-    let title: String
-    let level: AppRiskLevel
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            HStack {
-                Text(title)
-                    .font(AppTypography.bodyStrong)
-                    .foregroundStyle(AppColor.textPrimary)
-
-                Spacer()
-
-                Text(level.displayText)
-                    .font(AppTypography.captionStrong)
-                    .foregroundStyle(AppColor.textSecondary)
-            }
-
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: AppRadius.pill)
-                        .fill(AppColor.line)
-                        .frame(height: 10)
-
-                    RoundedRectangle(cornerRadius: AppRadius.pill)
-                        .fill(RiskPalette.color(for: level))
-                        .frame(width: max(proxy.size.width * level.progress, 10), height: 10)
-                }
-            }
-            .frame(height: 10)
+            PollenBreakdownBar(items: summary.breakdownItems)
         }
     }
 }
@@ -156,34 +118,14 @@ private struct TodaySourceCard: View {
 
     var body: some View {
         TodayCardContainer(title: "数据来源", subtitle: "风险参考，非医疗建议") {
-            VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                HStack {
-                    Text(source.providerName)
-                        .font(AppTypography.bodyStrong)
-                        .foregroundStyle(AppColor.textPrimary)
-
-                    Spacer()
-
-                    Text(source.source.displayText)
-                        .font(AppTypography.captionStrong)
-                        .foregroundStyle(AppColor.brandDeep)
-                        .padding(.horizontal, AppSpacing.sm)
-                        .padding(.vertical, AppSpacing.xs)
-                        .background(AppColor.surfaceMuted, in: Capsule())
-                }
-
-                Text(source.coverageNote)
-                    .font(AppTypography.body)
-                    .foregroundStyle(AppColor.textSecondary)
-
-                Text(source.licenseNote)
-                    .font(AppTypography.caption)
-                    .foregroundStyle(AppColor.textSecondary)
-
-                Text("更新于 \(source.updatedAt.relativeText)")
-                    .font(AppTypography.caption)
-                    .foregroundStyle(AppColor.textDisabled)
-            }
+            SourceTransparencyCard(
+                providerName: source.providerName,
+                sourceTypeLabel: source.source.displayText,
+                coverageNote: source.coverageNote,
+                licenseNote: source.licenseNote,
+                updatedAtText: "更新于 \(source.updatedAt.relativeText)",
+                disclaimer: "风险参考，非医疗建议"
+            )
         }
     }
 }
@@ -316,6 +258,14 @@ private extension PollenSummary {
         source.displayText
     }
 
+    var breakdownItems: [PollenBreakdownItem] {
+        [
+            PollenBreakdownItem(title: "树", level: treeLevel.uiLevel),
+            PollenBreakdownItem(title: "草", level: grassLevel.uiLevel),
+            PollenBreakdownItem(title: "杂草", level: weedLevel.uiLevel)
+        ]
+    }
+
     var heroMetrics: [RiskHeroMetric] {
         var items = [
             RiskHeroMetric(
@@ -350,29 +300,6 @@ private extension PollenSummary {
 private extension PollenRiskLevel {
     var uiLevel: AppRiskLevel {
         AppRiskLevel(rawValue: rawValue) ?? .none
-    }
-}
-
-private extension AppRiskLevel {
-    var displayText: String {
-        switch self {
-        case .none:
-            "极低"
-        case .veryLow:
-            "很低"
-        case .low:
-            "较低"
-        case .moderate:
-            "中等"
-        case .high:
-            "较高"
-        case .veryHigh:
-            "极高"
-        }
-    }
-
-    var progress: CGFloat {
-        CGFloat(rawValue) / CGFloat(AppRiskLevel.veryHigh.rawValue)
     }
 }
 

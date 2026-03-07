@@ -40,3 +40,26 @@ enum RiskPalette {
         }
     }
 }
+
+extension AppRiskLevel {
+    var displayText: String {
+        switch self {
+        case .none:
+            "极低"
+        case .veryLow:
+            "很低"
+        case .low:
+            "较低"
+        case .moderate:
+            "中等"
+        case .high:
+            "较高"
+        case .veryHigh:
+            "极高"
+        }
+    }
+
+    var progress: CGFloat {
+        CGFloat(rawValue) / CGFloat(AppRiskLevel.veryHigh.rawValue)
+    }
+}

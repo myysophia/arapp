@@ -167,7 +167,7 @@ private struct ThresholdSliderCard: View {
 
                     Spacer()
 
-                    Text(level.displayText)
+                    Text(level.thresholdText)
                         .font(AppTypography.bodyStrong)
                         .foregroundStyle(level.badgeForeground)
                         .padding(.horizontal, AppSpacing.sm)
@@ -543,7 +543,7 @@ private extension PollenRiskLevel {
 }
 
 private extension AppRiskLevel {
-    var displayText: String {
+    var thresholdText: String {
         switch self {
         case .none:
             "0 级"
