@@ -2,29 +2,36 @@ import SwiftUI
 
 struct TodayView: View {
     @Environment(AppState.self) private var appState
+    @State private var screenModel: TodayScreenModel
 
-    private let state = TodayScreenState.demo
+    init(screenModel: TodayScreenModel = TodayScreenModel()) {
+        _screenModel = State(initialValue: screenModel)
+    }
+
+    private var dataModeBinding: Binding<TodayScreenModel.DataMode> {
+        Binding(
+            get: { screenModel.dataMode },
+            set: { screenModel.dataMode = $0 }
+        )
+    }
+
+    private var mockScenarioBinding: Binding<TodayScreenModel.MockScenario> {
+        Binding(
+            get: { screenModel.mockScenario },
+            set: { screenModel.mockScenario = $0 }
+        )
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                TodayHeader(summary: state.summary)
-                RiskHeroCard(
-                    eyebrow: "当前风险",
-                    title: state.summary.riskTitle,
-                    description: state.summary.riskDescription,
-                    badgeText: state.summary.riskBadgeText,
-                    badgeColor: state.summary.riskBadgeColor,
-                    badgeForeground: state.summary.riskBadgeForeground,
-                    metrics: state.summary.heroMetrics,
-                    primaryActionTitle: "开启提醒"
-                ) {
-                    appState.selectedTab = .alerts
-                }
-                TodayBreakdownCard(summary: state.summary)
-                TodayTrendCard(forecast: state.forecast)
-                TodayAdviceCard(summary: state.summary, adviceItems: state.adviceItems)
-                TodaySourceCard(source: state.source)
+                TodayModeCard(
+                    dataMode: dataModeBinding,
+                    mockScenario: mockScenarioBinding,
+                    reloadAction: { Task { await screenModel.reload() } }
+                )
+
+                contentSection
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.vertical, AppSpacing.lg)
@@ -32,6 +39,124 @@ struct TodayView: View {
         .background(AppColor.background.ignoresSafeArea())
         .navigationTitle(AppTab.today.title)
         .navigationBarTitleDisplayMode(.large)
+        .task(id: screenModel.reloadKey) {
+            await screenModel.reload()
+        }
+        .refreshable {
+            await screenModel.reload()
+        }
+    }
+
+    @ViewBuilder
+    private var contentSection: some View {
+        switch screenModel.contentState {
+        case .loading:
+            TodayLoadingCard()
+        case let .empty(title, detail):
+            TodayStatusCard(
+                title: title,
+                detail: detail,
+                systemImage: "tray",
+                tintColor: AppColor.textSecondary,
+                actionTitle: "切回 Mock 成功态",
+                action: {
+                    screenModel.dataMode = .mock
+                    screenModel.mockScenario = .success
+                }
+            )
+        case let .failure(title, detail, retryable):
+            TodayStatusCard(
+                title: title,
+                detail: detail,
+                systemImage: "wifi.exclamationmark",
+                tintColor: AppColor.danger,
+                actionTitle: retryable ? "重新加载" : nil,
+                action: retryable ? { Task { await screenModel.reload() } } : nil
+            )
+        case let .success(screenState):
+            TodaySuccessContent(screenState: screenState, openAlerts: {
+                appState.selectedTab = .alerts
+            })
+        }
+    }
+}
+
+private struct TodayModeCard: View {
+    @Binding var dataMode: TodayScreenModel.DataMode
+    @Binding var mockScenario: TodayScreenModel.MockScenario
+    let reloadAction: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("数据模式")
+                        .font(AppTypography.titleCard)
+                        .foregroundStyle(AppColor.textPrimary)
+
+                    Text("Today 页面支持 Mock 和 Client 两条数据链路。")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColor.textSecondary)
+                }
+
+                Spacer()
+
+                Button("重载") {
+                    reloadAction()
+                }
+                .font(AppTypography.captionStrong)
+                .foregroundStyle(AppColor.brand)
+            }
+
+            Picker("数据模式", selection: $dataMode) {
+                ForEach(TodayScreenModel.DataMode.allCases) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            if dataMode == .mock {
+                Picker("Mock 场景", selection: $mockScenario) {
+                    ForEach(TodayScreenModel.MockScenario.allCases) { scenario in
+                        Text(scenario.title).tag(scenario)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+        }
+        .padding(AppSpacing.lg)
+        .background(
+            RoundedRectangle(cornerRadius: AppRadius.lg)
+                .fill(AppColor.surface)
+                .shadow(color: AppShadow.cardColor, radius: AppShadow.cardRadius, x: AppShadow.cardX, y: AppShadow.cardY)
+        )
+    }
+}
+
+private struct TodaySuccessContent: View {
+    let screenState: TodayScreenState
+    let openAlerts: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            TodayHeader(summary: screenState.summary)
+            RiskHeroCard(
+                eyebrow: "当前风险",
+                title: screenState.summary.riskTitle,
+                description: screenState.summary.riskDescription,
+                badgeText: screenState.summary.riskBadgeText,
+                badgeColor: screenState.summary.riskBadgeColor,
+                badgeForeground: screenState.summary.riskBadgeForeground,
+                metrics: screenState.summary.heroMetrics,
+                primaryActionTitle: "开启提醒"
+            ) {
+                openAlerts()
+            }
+            TodayBreakdownCard(summary: screenState.summary)
+            TodayTrendCard(forecast: screenState.forecast)
+            TodayAdviceCard(summary: screenState.summary, adviceItems: screenState.adviceItems)
+            TodaySourceCard(source: screenState.source)
+        }
     }
 }
 
@@ -188,6 +313,67 @@ private struct TodaySourceCard: View {
     }
 }
 
+private struct TodayLoadingCard: View {
+    var body: some View {
+        TodayCardContainer(title: "正在加载 Today 页面", subtitle: "读取 summary / forecast / source meta") {
+            HStack(spacing: AppSpacing.md) {
+                ProgressView()
+                    .tint(AppColor.brand)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("正在同步花粉风险数据")
+                        .font(AppTypography.bodyStrong)
+                        .foregroundStyle(AppColor.textPrimary)
+
+                    Text("如果你切到 Client 模式，页面会优先尝试读取 Edge Functions。")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColor.textSecondary)
+                }
+
+                Spacer()
+            }
+        }
+    }
+}
+
+private struct TodayStatusCard: View {
+    let title: String
+    let detail: String
+    let systemImage: String
+    let tintColor: Color
+    let actionTitle: String?
+    let action: (() -> Void)?
+
+    var body: some View {
+        TodayCardContainer(title: title, subtitle: detail) {
+            VStack(alignment: .leading, spacing: AppSpacing.md) {
+                HStack(alignment: .top, spacing: AppSpacing.md) {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(tintColor)
+                        .frame(width: 28, height: 28)
+
+                    Text(detail)
+                        .font(AppTypography.body)
+                        .foregroundStyle(AppColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                if let actionTitle, let action {
+                    Button(actionTitle) {
+                        action()
+                    }
+                    .font(AppTypography.bodyStrong)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.vertical, AppSpacing.sm)
+                    .background(AppColor.brand, in: Capsule())
+                }
+            }
+        }
+    }
+}
+
 private struct TodayCardContainer<Content: View>: View {
     let title: String
     let subtitle: String
@@ -213,213 +399,6 @@ private struct TodayCardContainer<Content: View>: View {
                 .fill(AppColor.surface)
                 .shadow(color: AppShadow.cardColor, radius: AppShadow.cardRadius, x: AppShadow.cardX, y: AppShadow.cardY)
         )
-    }
-}
-
-private struct TodayAdviceItem: Identifiable {
-    let id = UUID()
-    let title: String
-    let detail: String
-    let systemImage: String
-}
-
-private struct TodayScreenState {
-    let summary: PollenSummary
-    let forecast: PollenForecast
-    let source: SourceMeta
-    let adviceItems: [TodayAdviceItem]
-
-    static let demo = TodayScreenState(
-        summary: PollenSummary(
-            id: "summary-shanghai-high",
-            cityName: "上海",
-            locationID: UUID(uuidString: "6f222b19-b7c9-4baa-8661-2dd6905ddf00"),
-            riskOverall: .high,
-            treeLevel: .low,
-            grassLevel: .high,
-            weedLevel: .high,
-            confidence: 0.84,
-            updatedAt: ISO8601DateFormatter().date(from: "2026-03-06T08:10:00Z") ?? .now,
-            source: .model,
-            isStale: false
-        ),
-        forecast: PollenForecast(
-            days: [
-                ForecastPoint(id: "2026-03-06", date: "2026-03-06", riskOverall: .high, treeLevel: .low, grassLevel: .high, weedLevel: .high),
-                ForecastPoint(id: "2026-03-07", date: "2026-03-07", riskOverall: .veryHigh, treeLevel: .moderate, grassLevel: .veryHigh, weedLevel: .high),
-                ForecastPoint(id: "2026-03-08", date: "2026-03-08", riskOverall: .moderate, treeLevel: .low, grassLevel: .moderate, weedLevel: .low)
-            ]
-        ),
-        source: SourceMeta(
-            id: UUID(uuidString: "8d11c444-0dd7-492d-a185-774bcc66a6f7") ?? UUID(),
-            providerName: "Primary Model Provider",
-            source: .model,
-            coverageNote: "中国大陆主要城市模型覆盖",
-            licenseNote: "仅用于风险参考，不代表采样监测",
-            active: true,
-            updatedAt: ISO8601DateFormatter().date(from: "2026-03-06T08:10:00Z") ?? .now
-        ),
-        adviceItems: [
-            TodayAdviceItem(title: "减少高暴露时段外出", detail: "中午到傍晚风险更高，优先安排室内活动。", systemImage: "sun.max"),
-            TodayAdviceItem(title: "回家后及时清洁", detail: "外出后更换外套并清洗面部，减少花粉残留。", systemImage: "drop"),
-            TodayAdviceItem(title: "开启阈值提醒", detail: "当明天风险升高时，提前收到通知。", systemImage: "bell.badge")
-        ]
-    )
-}
-
-private extension PollenSummary {
-    var uiLevel: AppRiskLevel { riskOverall.uiLevel }
-
-    var riskTitle: String {
-        switch riskOverall {
-        case .none:
-            "风险很低"
-        case .veryLow, .low:
-            "低风险"
-        case .moderate:
-            "中等风险"
-        case .high:
-            "高风险"
-        case .veryHigh:
-            "极高风险"
-        }
-    }
-
-    var riskDescription: String {
-        switch riskOverall {
-        case .none:
-            "今天的空气花粉影响较弱，日常活动基本不受影响。"
-        case .veryLow, .low:
-            "今天可以正常外出，但对花粉敏感人群仍建议保持观察。"
-        case .moderate:
-            "今天花粉水平正在抬升，建议缩短长时间户外停留。"
-        case .high:
-            "今天不建议长时间暴露在户外花粉环境中。"
-        case .veryHigh:
-            "今天建议尽量减少外出，并提前准备个人防护。"
-        }
-    }
-
-    var riskBadgeText: String { uiLevel.displayText }
-    var riskBadgeColor: Color { RiskPalette.color(for: uiLevel) }
-    var riskBadgeForeground: Color { RiskPalette.labelColor(for: uiLevel) }
-
-    var updatedAtText: String {
-        "更新于 \(updatedAt.relativeText)"
-    }
-
-    var confidenceText: String {
-        "\(Int(confidence * 100))%"
-    }
-
-    var sourceTag: String {
-        source.displayText
-    }
-
-    var heroMetrics: [RiskHeroMetric] {
-        var items = [
-            RiskHeroMetric(
-                title: "可信度",
-                value: confidenceText,
-                systemImage: "shield.lefthalf.filled"
-            )
-        ]
-
-        if isStale {
-            items.append(
-                RiskHeroMetric(
-                    title: "状态",
-                    value: "更新较早",
-                    systemImage: "clock.arrow.circlepath"
-                )
-            )
-        } else {
-            items.append(
-                RiskHeroMetric(
-                    title: "模型点",
-                    value: sourceTag,
-                    systemImage: "waveform.path.ecg"
-                )
-            )
-        }
-
-        return items
-    }
-}
-
-private extension PollenRiskLevel {
-    var uiLevel: AppRiskLevel {
-        AppRiskLevel(rawValue: rawValue) ?? .none
-    }
-}
-
-private extension AppRiskLevel {
-    var displayText: String {
-        switch self {
-        case .none:
-            "极低"
-        case .veryLow:
-            "很低"
-        case .low:
-            "较低"
-        case .moderate:
-            "中等"
-        case .high:
-            "较高"
-        case .veryHigh:
-            "极高"
-        }
-    }
-
-    var progress: CGFloat {
-        CGFloat(rawValue) / CGFloat(AppRiskLevel.veryHigh.rawValue)
-    }
-}
-
-private extension PollenSourceType {
-    var displayText: String {
-        switch self {
-        case .model:
-            "模型点"
-        case .station:
-            "监测站"
-        case .vendor:
-            "合作源"
-        }
-    }
-}
-
-private extension ForecastPoint {
-    var displayDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_Hans")
-        formatter.dateFormat = "MM/dd"
-        guard let parsed = ISO8601DateFormatter().date(from: date + "T00:00:00Z") else {
-            return date
-        }
-        return formatter.string(from: parsed)
-    }
-}
-
-private extension PollenForecast {
-    var trendItems: [TrendMiniChartItem] {
-        days.map { day in
-            TrendMiniChartItem(
-                id: day.id,
-                levelText: day.riskOverall.uiLevel.displayText,
-                dateText: day.displayDate,
-                level: day.riskOverall.uiLevel
-            )
-        }
-    }
-}
-
-private extension Date {
-    var relativeText: String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.locale = Locale(identifier: "zh_Hans")
-        formatter.unitsStyle = .short
-        return formatter.localizedString(for: self, relativeTo: .now)
     }
 }
 
