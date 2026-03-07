@@ -5,6 +5,13 @@ struct TrendMiniChartItem: Identifiable, Hashable {
     let levelText: String
     let dateText: String
     let level: AppRiskLevel
+
+    init(id: String, levelText: String, dateText: String, level: AppRiskLevel) {
+        self.id = id
+        self.levelText = levelText
+        self.dateText = dateText
+        self.level = level
+    }
 }
 
 struct TrendMiniChart: View {
