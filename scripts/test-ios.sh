@@ -34,21 +34,19 @@ fi
 workspace="$(find . -maxdepth 2 -name "*.xcworkspace" | head -n 1 || true)"
 project="$(find . -maxdepth 2 -name "*.xcodeproj" | head -n 1 || true)"
 
-if [[ -z "$workspace" && -z "$project" ]]; then
-  if [[ -f "project.yml" ]]; then
-    if xcodegen_bin="$(find_xcodegen)"; then
-      echo "检测到 project.yml，使用 XcodeGen 生成工程。"
-      "$xcodegen_bin" generate
-      workspace="$(find . -maxdepth 2 -name "*.xcworkspace" | head -n 1 || true)"
-      project="$(find . -maxdepth 2 -name "*.xcodeproj" | head -n 1 || true)"
-    else
-      echo "检测到 project.yml，但未找到 xcodegen，无法生成工程。"
-      exit 1
-    fi
+if [[ -f "project.yml" ]]; then
+  if xcodegen_bin="$(find_xcodegen)"; then
+    echo "检测到 project.yml，使用 XcodeGen 生成工程。"
+    "$xcodegen_bin" generate
+    workspace="$(find . -maxdepth 2 -name "*.xcworkspace" | head -n 1 || true)"
+    project="$(find . -maxdepth 2 -name "*.xcodeproj" | head -n 1 || true)"
   else
-    echo "未检测到 iOS 工程，跳过 iOS 构建与测试。"
-    exit 0
+    echo "检测到 project.yml，但未找到 xcodegen，无法生成工程。"
+    exit 1
   fi
+elif [[ -z "$workspace" && -z "$project" ]]; then
+  echo "未检测到 iOS 工程，跳过 iOS 构建与测试。"
+  exit 0
 fi
 
 if ! command -v xcodebuild >/dev/null 2>&1; then
