@@ -72,31 +72,34 @@ struct LoginView: View {
                 .font(AppTypography.titleCard)
                 .foregroundStyle(AppColor.textPrimary)
 
-            LoginProviderButton(
+            AuthProviderButton(
                 title: "使用 Google 继续",
                 subtitle: "适合需要快速同步设置的用户",
                 icon: "globe",
                 backgroundColor: AppColor.surface,
                 foregroundColor: AppColor.textPrimary,
-                showsBorder: true
+                showsBorder: true,
+                onTap: {}
             )
 
-            LoginProviderButton(
+            AuthProviderButton(
                 title: "使用 GitHub 继续",
                 subtitle: "适合开发者账号体系保持一致",
                 icon: "chevron.left.forwardslash.chevron.right",
                 backgroundColor: AppColor.textPrimary,
                 foregroundColor: .white,
-                showsBorder: false
+                showsBorder: false,
+                onTap: {}
             )
 
-            LoginProviderButton(
+            AuthProviderButton(
                 title: "使用 Apple 继续",
                 subtitle: "遵循 iOS 原生登录习惯",
                 icon: "apple.logo",
                 backgroundColor: .black,
                 foregroundColor: .white,
-                showsBorder: false
+                showsBorder: false,
+                onTap: {}
             )
         }
     }
@@ -192,45 +195,6 @@ struct LoginView: View {
         .padding(AppSpacing.md)
         .background(AppColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
-    }
-}
-
-private struct LoginProviderButton: View {
-    let title: String
-    let subtitle: String
-    let icon: String
-    let backgroundColor: Color
-    let foregroundColor: Color
-    let showsBorder: Bool
-
-    var body: some View {
-        Button(action: {}) {
-            HStack(spacing: AppSpacing.md) {
-                Image(systemName: icon)
-                    .font(.system(size: 18, weight: .semibold))
-                    .frame(width: 28, height: 28)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(AppTypography.bodyStrong)
-                    Text(subtitle)
-                        .font(AppTypography.caption)
-                        .foregroundStyle(foregroundColor.opacity(0.76))
-                }
-
-                Spacer()
-            }
-            .foregroundStyle(foregroundColor)
-            .padding(AppSpacing.md)
-            .frame(maxWidth: .infinity)
-            .background(backgroundColor)
-            .overlay {
-                RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
-                    .stroke(showsBorder ? AppColor.line : .clear, lineWidth: 1)
-            }
-            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
-        }
-        .buttonStyle(.plain)
     }
 }
 

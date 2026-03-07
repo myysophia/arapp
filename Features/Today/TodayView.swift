@@ -9,7 +9,16 @@ struct TodayView: View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 TodayHeader(summary: state.summary)
-                TodayRiskHeroCard(summary: state.summary) {
+                RiskHeroCard(
+                    eyebrow: "当前风险",
+                    title: state.summary.riskTitle,
+                    description: state.summary.riskDescription,
+                    badgeText: state.summary.riskBadgeText,
+                    badgeColor: state.summary.riskBadgeColor,
+                    badgeForeground: state.summary.riskBadgeForeground,
+                    metrics: state.summary.heroMetrics,
+                    primaryActionTitle: "开启提醒"
+                ) {
                     appState.selectedTab = .alerts
                 }
                 TodayBreakdownCard(summary: state.summary)
@@ -42,103 +51,6 @@ private struct TodayHeader: View {
             .font(AppTypography.caption)
             .foregroundStyle(AppColor.textSecondary)
         }
-    }
-}
-
-private struct TodayRiskHeroCard: View {
-    let summary: PollenSummary
-    let onPrimaryAction: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.md) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("当前风险")
-                        .font(AppTypography.captionStrong)
-                        .foregroundStyle(AppColor.textSecondary)
-
-                    Text(summary.riskTitle)
-                        .font(AppTypography.titleHero)
-                        .foregroundStyle(AppColor.textPrimary)
-
-                    Text(summary.riskDescription)
-                        .font(AppTypography.body)
-                        .foregroundStyle(AppColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer(minLength: AppSpacing.md)
-
-                Text(summary.riskBadgeText)
-                    .font(AppTypography.bodyStrong)
-                    .foregroundStyle(summary.riskBadgeForeground)
-                    .padding(.horizontal, AppSpacing.sm)
-                    .padding(.vertical, AppSpacing.xs)
-                    .background(summary.riskBadgeColor, in: Capsule())
-            }
-
-            HStack(spacing: AppSpacing.md) {
-                TodayMetricChip(
-                    title: "可信度",
-                    value: summary.confidenceText,
-                    systemImage: "shield.lefthalf.filled"
-                )
-
-                if summary.isStale {
-                    TodayMetricChip(
-                        title: "状态",
-                        value: "更新较早",
-                        systemImage: "clock.arrow.circlepath"
-                    )
-                } else {
-                    TodayMetricChip(
-                        title: "模型点",
-                        value: summary.sourceTag,
-                        systemImage: "waveform.path.ecg"
-                    )
-                }
-            }
-
-            Button(action: onPrimaryAction) {
-                Text("开启提醒")
-                    .font(AppTypography.bodyStrong)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppSpacing.sm)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.white)
-            .background(AppColor.brand, in: RoundedRectangle(cornerRadius: AppRadius.md))
-        }
-        .padding(AppSpacing.lg)
-        .background(
-            RoundedRectangle(cornerRadius: AppRadius.lg)
-                .fill(AppColor.surface)
-                .shadow(color: AppShadow.cardColor, radius: AppShadow.cardRadius, x: AppShadow.cardX, y: AppShadow.cardY)
-        )
-    }
-}
-
-private struct TodayMetricChip: View {
-    let title: String
-    let value: String
-    let systemImage: String
-
-    var body: some View {
-        HStack(spacing: AppSpacing.xs) {
-            Image(systemName: systemImage)
-                .font(.system(size: 13, weight: .semibold))
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(AppTypography.caption)
-                Text(value)
-                    .font(AppTypography.captionStrong)
-            }
-        }
-        .foregroundStyle(AppColor.brandDeep)
-        .padding(.horizontal, AppSpacing.sm)
-        .padding(.vertical, AppSpacing.xs)
-        .background(AppColor.surfaceMuted, in: Capsule())
     }
 }
 
@@ -195,26 +107,7 @@ private struct TodayTrendCard: View {
 
     var body: some View {
         TodayCardContainer(title: "未来 3 天趋势", subtitle: trendSummary) {
-            HStack(alignment: .bottom, spacing: AppSpacing.md) {
-                ForEach(forecast.days) { day in
-                    VStack(spacing: AppSpacing.sm) {
-                        Text(day.riskOverall.uiLevel.displayText)
-                            .font(AppTypography.captionStrong)
-                            .foregroundStyle(AppColor.textSecondary)
-                            .multilineTextAlignment(.center)
-                            .frame(height: 32)
-
-                        RoundedRectangle(cornerRadius: AppRadius.sm)
-                            .fill(RiskPalette.color(for: day.riskOverall.uiLevel))
-                            .frame(width: 28, height: max(36, CGFloat(day.riskOverall.rawValue) * 24))
-
-                        Text(day.displayDate)
-                            .font(AppTypography.caption)
-                            .foregroundStyle(AppColor.textSecondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            }
+            TrendMiniChart(items: forecast.trendItems)
         }
     }
 
@@ -422,6 +315,36 @@ private extension PollenSummary {
     var sourceTag: String {
         source.displayText
     }
+
+    var heroMetrics: [RiskHeroMetric] {
+        var items = [
+            RiskHeroMetric(
+                title: "可信度",
+                value: confidenceText,
+                systemImage: "shield.lefthalf.filled"
+            )
+        ]
+
+        if isStale {
+            items.append(
+                RiskHeroMetric(
+                    title: "状态",
+                    value: "更新较早",
+                    systemImage: "clock.arrow.circlepath"
+                )
+            )
+        } else {
+            items.append(
+                RiskHeroMetric(
+                    title: "模型点",
+                    value: sourceTag,
+                    systemImage: "waveform.path.ecg"
+                )
+            )
+        }
+
+        return items
+    }
 }
 
 private extension PollenRiskLevel {
@@ -475,6 +398,19 @@ private extension ForecastPoint {
             return date
         }
         return formatter.string(from: parsed)
+    }
+}
+
+private extension PollenForecast {
+    var trendItems: [TrendMiniChartItem] {
+        days.map { day in
+            TrendMiniChartItem(
+                id: day.id,
+                levelText: day.riskOverall.uiLevel.displayText,
+                dateText: day.displayDate,
+                level: day.riskOverall.uiLevel
+            )
+        }
     }
 }
 
