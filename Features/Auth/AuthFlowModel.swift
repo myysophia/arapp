@@ -46,14 +46,14 @@ final class AuthFlowModel {
 
     var displayName: String {
         guard !session.isAnonymous else {
-            return "匿名使用中"
+            return L10n.tr("auth.display_name.anonymous")
         }
 
         if let firstProvider = session.providers.first {
-            return "\(providerName(firstProvider)) 账户"
+            return L10n.format("auth.display_name.provider_account", providerName(firstProvider))
         }
 
-        return "已登录用户"
+        return L10n.tr("auth.display_name.signed_in")
     }
 
     var isAnonymous: Bool {
@@ -77,11 +77,11 @@ final class AuthFlowModel {
     var statusChipText: String? {
         switch phase {
         case let .signingIn(provider):
-            return "\(providerName(provider)) 登录中"
+            return L10n.format("auth.status.signing_in", providerName(provider))
         case .failed:
-            return "登录失败"
+            return L10n.tr("auth.status.failed")
         case .signedIn:
-            return "已连接"
+            return L10n.tr("auth.status.connected")
         case .idle:
             return nil
         }
@@ -148,17 +148,19 @@ final class AuthFlowModel {
     }
 
     func providerTitle(_ provider: AuthProvider) -> String {
-        isSigningIn(provider) ? "正在连接 \(providerName(provider))" : "使用 \(providerName(provider)) 继续"
+        isSigningIn(provider)
+            ? L10n.format("auth.provider.connecting", providerName(provider))
+            : L10n.format("auth.provider.continue_with", providerName(provider))
     }
 
     func providerSubtitle(_ provider: AuthProvider) -> String {
         switch provider {
         case .google:
-            return isSigningIn(provider) ? "正在模拟 OAuth 回调和会话建立" : "适合需要快速同步设置的用户"
+            return isSigningIn(provider) ? L10n.tr("auth.provider.google.loading") : L10n.tr("auth.provider.google.subtitle")
         case .github:
-            return isSigningIn(provider) ? "正在模拟开发者账号登录" : "适合开发者账号体系保持一致"
+            return isSigningIn(provider) ? L10n.tr("auth.provider.github.loading") : L10n.tr("auth.provider.github.subtitle")
         case .apple:
-            return isSigningIn(provider) ? "正在模拟原生 Apple 登录" : "遵循 iOS 原生登录习惯"
+            return isSigningIn(provider) ? L10n.tr("auth.provider.apple.loading") : L10n.tr("auth.provider.apple.subtitle")
         }
     }
 

@@ -14,9 +14,9 @@ final class TodayScreenModel {
         var title: String {
             switch self {
             case .mock:
-                "Mock"
+                L10n.tr("common.mode.mock")
             case .client:
-                "Client"
+                L10n.tr("common.mode.client")
             }
         }
     }
@@ -31,11 +31,11 @@ final class TodayScreenModel {
         var title: String {
             switch self {
             case .success:
-                "成功"
+                L10n.tr("common.scenario.success")
             case .empty:
-                "空态"
+                L10n.tr("common.scenario.empty")
             case .failure:
-                "失败"
+                L10n.tr("common.scenario.failure")
             }
         }
     }
@@ -99,18 +99,18 @@ final class TodayScreenModel {
         } catch let error as TodayScreenModelError {
             contentState = .failure(
                 title: error.title,
-                detail: error.errorDescription ?? "加载 Today 页面失败。",
+                detail: error.errorDescription ?? L10n.tr("today.error.load_failed"),
                 retryable: error.isRetryable
             )
         } catch let error as APIClientError {
             contentState = .failure(
-                title: "Client 模式暂不可用",
-                detail: error.errorDescription ?? "网络请求失败。",
+                title: L10n.tr("common.client_unavailable"),
+                detail: error.errorDescription ?? L10n.tr("today.error.network_failed"),
                 retryable: true
             )
         } catch {
             contentState = .failure(
-                title: "Today 页面加载失败",
+                title: L10n.tr("today.error.screen_failed"),
                 detail: error.localizedDescription,
                 retryable: true
             )
@@ -123,13 +123,13 @@ final class TodayScreenModel {
             return .success(try await loadScreenState(using: mockClient))
         case .empty:
             return .empty(
-                title: "当前没有可展示的数据",
-                detail: "这是 Mock 空态，用于验证页面在无结果时的展示与操作提示。"
+                title: L10n.tr("today.empty.title"),
+                detail: L10n.tr("today.empty.detail")
             )
         case .failure:
             return .failure(
-                title: "Mock 数据加载失败",
-                detail: "这是 Mock 失败态，用于验证重试按钮、错误提示和页面韧性。",
+                title: L10n.tr("today.mock_failure.title"),
+                detail: L10n.tr("today.mock_failure.detail"),
                 retryable: true
             )
         }
@@ -139,8 +139,8 @@ final class TodayScreenModel {
         let screenState = try await loadScreenState(using: client)
         guard !screenState.forecast.days.isEmpty else {
             return .empty(
-                title: "服务端暂无预测数据",
-                detail: "当前接口返回的 forecast.days 为空，页面已切换到空态。"
+                title: L10n.tr("today.server_empty.title"),
+                detail: L10n.tr("today.server_empty.detail")
             )
         }
         return .success(screenState)
@@ -163,7 +163,7 @@ final class TodayScreenModel {
         )
     }
 
-    private static let language = "zh-Hans"
+    private static let language = L10n.apiLanguageIdentifier
 
     private static let summaryQuery = SummaryQuery(
         lat: 31.2304,
@@ -184,19 +184,19 @@ final class TodayScreenModel {
         switch risk {
         case .none, .veryLow, .low:
             [
-                TodayAdviceItem(title: "按常规活动安排出行", detail: "当前总体风险较低，优先保持日常节奏即可。", systemImage: "figure.walk"),
-                TodayAdviceItem(title: "保留基础观察", detail: "若你对某类花粉特别敏感，建议继续关注明天趋势。", systemImage: "eye")
+                TodayAdviceItem(title: L10n.tr("today.advice.low.1.title"), detail: L10n.tr("today.advice.low.1.detail"), systemImage: "figure.walk"),
+                TodayAdviceItem(title: L10n.tr("today.advice.low.2.title"), detail: L10n.tr("today.advice.low.2.detail"), systemImage: "eye")
             ]
         case .moderate:
             [
-                TodayAdviceItem(title: "缩短高暴露时段外出", detail: "中午到傍晚花粉水平更容易抬升。", systemImage: "sun.max"),
-                TodayAdviceItem(title: "回家后及时清洁", detail: "更换外套并清洗面部，减少花粉残留。", systemImage: "drop")
+                TodayAdviceItem(title: L10n.tr("today.advice.moderate.1.title"), detail: L10n.tr("today.advice.moderate.1.detail"), systemImage: "sun.max"),
+                TodayAdviceItem(title: L10n.tr("today.advice.moderate.2.title"), detail: L10n.tr("today.advice.moderate.2.detail"), systemImage: "drop")
             ]
         case .high, .veryHigh:
             [
-                TodayAdviceItem(title: "减少长时间户外暴露", detail: "今天更适合以室内活动为主。", systemImage: "house"),
-                TodayAdviceItem(title: "外出提前做个人防护", detail: "口罩、眼镜和回家后的清洁会更有帮助。", systemImage: "shield.lefthalf.filled"),
-                TodayAdviceItem(title: "开启阈值提醒", detail: "让明天和后天的高风险变化提前通知你。", systemImage: "bell.badge")
+                TodayAdviceItem(title: L10n.tr("today.advice.high.1.title"), detail: L10n.tr("today.advice.high.1.detail"), systemImage: "house"),
+                TodayAdviceItem(title: L10n.tr("today.advice.high.2.title"), detail: L10n.tr("today.advice.high.2.detail"), systemImage: "shield.lefthalf.filled"),
+                TodayAdviceItem(title: L10n.tr("today.advice.high.3.title"), detail: L10n.tr("today.advice.high.3.detail"), systemImage: "bell.badge")
             ]
         }
     }
@@ -208,7 +208,7 @@ private enum TodayScreenModelError: LocalizedError {
     var title: String {
         switch self {
         case .missingBaseURL:
-            "Client 模式未配置"
+            L10n.tr("common.client_not_configured")
         }
     }
 
@@ -222,7 +222,7 @@ private enum TodayScreenModelError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingBaseURL:
-            "缺少 ARAPP_EDGE_BASE_URL，当前无法真正发起 Edge Functions 请求。"
+            L10n.tr("today.error.missing_base_url")
         }
     }
 }
@@ -247,30 +247,30 @@ extension PollenSummary {
     var riskTitle: String {
         switch riskOverall {
         case .none:
-            "风险很低"
+            L10n.tr("risk.title.none")
         case .veryLow, .low:
-            "低风险"
+            L10n.tr("risk.title.low")
         case .moderate:
-            "中等风险"
+            L10n.tr("risk.title.moderate")
         case .high:
-            "高风险"
+            L10n.tr("risk.title.high")
         case .veryHigh:
-            "极高风险"
+            L10n.tr("risk.title.very_high")
         }
     }
 
     var riskDescription: String {
         switch riskOverall {
         case .none:
-            "今天的空气花粉影响较弱，日常活动基本不受影响。"
+            L10n.tr("today.risk_description.none")
         case .veryLow, .low:
-            "今天可以正常外出，但对花粉敏感人群仍建议保持观察。"
+            L10n.tr("today.risk_description.low")
         case .moderate:
-            "今天花粉水平正在抬升，建议缩短长时间户外停留。"
+            L10n.tr("today.risk_description.moderate")
         case .high:
-            "今天不建议长时间暴露在户外花粉环境中。"
+            L10n.tr("today.risk_description.high")
         case .veryHigh:
-            "今天建议尽量减少外出，并提前准备个人防护。"
+            L10n.tr("today.risk_description.very_high")
         }
     }
 
@@ -278,22 +278,14 @@ extension PollenSummary {
     var riskBadgeColor: Color { RiskPalette.color(for: uiLevel) }
     var riskBadgeForeground: Color { RiskPalette.labelColor(for: uiLevel) }
 
-    var updatedAtText: String {
-        "更新于 \(updatedAt.relativeText)"
-    }
-
     var confidenceText: String {
-        "\(Int(confidence * 100))%"
-    }
-
-    var sourceTag: String {
-        source.displayText
+        AppFormatters.percentText(confidence)
     }
 
     var heroMetrics: [RiskHeroMetric] {
         var items = [
             RiskHeroMetric(
-                title: "可信度",
+                title: L10n.tr("today.hero.confidence"),
                 value: confidenceText,
                 systemImage: "shield.lefthalf.filled"
             )
@@ -302,15 +294,15 @@ extension PollenSummary {
         if isStale {
             items.append(
                 RiskHeroMetric(
-                    title: "状态",
-                    value: "更新较早",
+                    title: L10n.tr("today.hero.status"),
+                    value: L10n.tr("today.hero.stale"),
                     systemImage: "clock.arrow.circlepath"
                 )
             )
         } else {
             items.append(
                 RiskHeroMetric(
-                    title: "模型点",
+                    title: L10n.tr("today.hero.source_type"),
                     value: sourceTag,
                     systemImage: "waveform.path.ecg"
                 )
@@ -321,57 +313,12 @@ extension PollenSummary {
     }
 }
 
-extension PollenRiskLevel {
-    var uiLevel: AppRiskLevel {
-        AppRiskLevel(rawValue: rawValue) ?? .none
-    }
-}
-
-extension AppRiskLevel {
-    var displayText: String {
-        switch self {
-        case .none:
-            "极低"
-        case .veryLow:
-            "很低"
-        case .low:
-            "较低"
-        case .moderate:
-            "中等"
-        case .high:
-            "较高"
-        case .veryHigh:
-            "极高"
-        }
-    }
-
-    var progress: CGFloat {
-        CGFloat(rawValue) / CGFloat(AppRiskLevel.veryHigh.rawValue)
-    }
-}
-
-extension PollenSourceType {
-    var displayText: String {
-        switch self {
-        case .model:
-            "模型点"
-        case .station:
-            "监测站"
-        case .vendor:
-            "合作源"
-        }
-    }
-}
-
 extension ForecastPoint {
     var displayDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_Hans")
-        formatter.dateFormat = "MM/dd"
         guard let parsed = ISO8601DateFormatter().date(from: date + "T00:00:00Z") else {
             return date
         }
-        return formatter.string(from: parsed)
+        return AppFormatters.monthDayText(parsed)
     }
 }
 
@@ -385,28 +332,5 @@ extension PollenForecast {
                 level: day.riskOverall.uiLevel
             )
         }
-    }
-}
-
-extension SourceMeta {
-    static func placeholder(for source: PollenSourceType) -> SourceMeta {
-        SourceMeta(
-            id: UUID(),
-            providerName: "未配置来源说明",
-            source: source,
-            coverageNote: "当前演示路径未返回来源说明，页面使用占位信息保证布局完整。",
-            licenseNote: "风险参考，非医疗建议。",
-            active: true,
-            updatedAt: .now
-        )
-    }
-}
-
-extension Date {
-    var relativeText: String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.locale = Locale(identifier: "zh_Hans")
-        formatter.unitsStyle = .short
-        return formatter.localizedString(for: self, relativeTo: .now)
     }
 }

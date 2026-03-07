@@ -11,13 +11,13 @@ enum AppTab: String, CaseIterable, Hashable, Identifiable {
     var title: String {
         switch self {
         case .today:
-            "今日"
+            L10n.tr("tab.today")
         case .map:
-            "地图"
+            L10n.tr("tab.map")
         case .alerts:
-            "提醒"
+            L10n.tr("tab.alerts")
         case .profile:
-            "我的"
+            L10n.tr("tab.profile")
         }
     }
 

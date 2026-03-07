@@ -65,8 +65,8 @@ struct MapView: View {
                 mapCanvasBackground
                 StateView(
                     type: .offline,
-                    title: "地图数据加载中",
-                    bodyText: "正在准备热力层、点位抽屉和来源说明。",
+                    title: L10n.tr("map.loading.title"),
+                    bodyText: L10n.tr("map.loading.detail"),
                     ctaTitle: nil,
                     onTapCTA: nil
                 )
@@ -79,7 +79,7 @@ struct MapView: View {
                     type: .error,
                     title: title,
                     bodyText: detail,
-                    ctaTitle: retryable ? "重试" : nil,
+                    ctaTitle: retryable ? L10n.tr("common.retry") : nil,
                     onTapCTA: retryable ? { Task { await screenModel.reload() } } : nil
                 )
                 .padding(.horizontal, AppSpacing.md)
@@ -206,25 +206,25 @@ private struct MapModeBar: View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("地图数据模式")
+                    Text(L10n.tr("map.mode.title"))
                         .font(AppTypography.titleCard)
                         .foregroundStyle(AppColor.textPrimary)
 
-                    Text("当前阶段用双模式验证热力层、抽屉和来源说明接线。")
+                    Text(L10n.tr("map.mode.subtitle"))
                         .font(AppTypography.caption)
                         .foregroundStyle(AppColor.textSecondary)
                 }
 
                 Spacer()
 
-                Button("重载") {
+                Button(L10n.tr("common.reload")) {
                     reloadAction()
                 }
                 .font(AppTypography.captionStrong)
                 .foregroundStyle(AppColor.brand)
             }
 
-            Picker("地图模式", selection: $dataMode) {
+            Picker(L10n.tr("map.mode.picker"), selection: $dataMode) {
                 ForEach(MapScreenModel.DataMode.allCases) { mode in
                     Text(mode.title).tag(mode)
                 }
@@ -232,7 +232,7 @@ private struct MapModeBar: View {
             .pickerStyle(.segmented)
 
             if dataMode == .mock {
-                Picker("Mock 场景", selection: $mockScenario) {
+                Picker(L10n.tr("map.scenario.picker"), selection: $mockScenario) {
                     ForEach(MapScreenModel.MockScenario.allCases) { scenario in
                         Text(scenario.title).tag(scenario)
                     }
@@ -347,7 +347,7 @@ private struct MapSearchBar: View {
 
             Spacer()
 
-            Text("\(state.searchItems.count) 个结果")
+            Text(L10n.format("map.search.result_count", state.searchItems.count))
                 .font(AppTypography.captionStrong)
                 .foregroundStyle(AppColor.brandDeep)
         }
@@ -363,7 +363,7 @@ private struct MapDisabledSearchBar: View {
         HStack(spacing: AppSpacing.sm) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(AppColor.textSecondary)
-            Text("地图数据未就绪")
+            Text(L10n.tr("map.search.disabled"))
                 .font(AppTypography.body)
                 .foregroundStyle(AppColor.textSecondary)
             Spacer()
@@ -444,7 +444,7 @@ private struct MapPointMarker: View {
 private struct MapLegendView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            Text("风险色阶")
+            Text(L10n.tr("map.legend.title"))
                 .font(AppTypography.captionStrong)
                 .foregroundStyle(AppColor.textPrimary)
 
@@ -503,9 +503,9 @@ private struct MapPointBottomSheet: View {
             }
 
             HStack(spacing: AppSpacing.sm) {
-                MapSheetMetric(title: "树", level: summary.treeLevel.uiLevel)
-                MapSheetMetric(title: "草", level: summary.grassLevel.uiLevel)
-                MapSheetMetric(title: "杂草", level: summary.weedLevel.uiLevel)
+                MapSheetMetric(title: L10n.tr("pollen.tree"), level: summary.treeLevel.uiLevel)
+                MapSheetMetric(title: L10n.tr("pollen.grass"), level: summary.grassLevel.uiLevel)
+                MapSheetMetric(title: L10n.tr("pollen.weed"), level: summary.weedLevel.uiLevel)
             }
 
             HStack(spacing: AppSpacing.xs) {
@@ -516,14 +516,14 @@ private struct MapPointBottomSheet: View {
             .font(AppTypography.caption)
             .foregroundStyle(AppColor.textSecondary)
 
-            Text("当前区域为模型推断结果，适合快速判断是否需要减少长时间户外暴露。")
+            Text(L10n.tr("map.sheet.detail"))
                 .font(AppTypography.body)
                 .foregroundStyle(AppColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: AppSpacing.sm) {
                 Button(action: primaryAction) {
-                    Text("设为关注城市")
+                    Text(L10n.tr("map.sheet.primary_action"))
                         .font(AppTypography.bodyStrong)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, AppSpacing.sm)
@@ -533,7 +533,7 @@ private struct MapPointBottomSheet: View {
                 .background(AppColor.brand, in: RoundedRectangle(cornerRadius: AppRadius.md))
 
                 Button(action: secondaryAction) {
-                    Text("查看今日详情")
+                    Text(L10n.tr("map.sheet.secondary_action"))
                         .font(AppTypography.bodyStrong)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, AppSpacing.sm)

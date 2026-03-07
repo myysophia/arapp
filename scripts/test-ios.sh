@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
+DERIVED_DATA_PATH="${IOS_DERIVED_DATA_PATH:-$ROOT_DIR/.build/DerivedData}"
 
 find_xcodegen() {
   if [[ -n "${XCODEGEN_BIN:-}" && -x "${XCODEGEN_BIN}" ]]; then
@@ -109,8 +110,10 @@ PY
 fi
 
 echo "执行 iOS 测试，Scheme: $scheme"
+mkdir -p "$DERIVED_DATA_PATH"
 xcodebuild \
   "${list_args[@]}" \
   -scheme "$scheme" \
   -destination "$destination" \
+  -derivedDataPath "$DERIVED_DATA_PATH" \
   clean test
