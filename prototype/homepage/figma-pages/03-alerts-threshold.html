@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>03 Main Screens / Alerts Threshold</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Fraunces:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+    <style>
+      :root {
+        --bg: #f4f6f4;
+        --paper: rgba(255, 255, 255, 0.84);
+        --ink: #11202d;
+        --muted: #5b6a75;
+        --line: rgba(17, 32, 45, 0.1);
+        --brand: #0e7490;
+        --brand-deep: #0a5368;
+        --shadow: 0 18px 40px rgba(17, 32, 45, 0.12);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "IBM Plex Sans", "PingFang SC", "Noto Sans SC", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 10% 10%, rgba(14, 116, 144, 0.16), transparent 28%),
+          radial-gradient(circle at 88% 10%, rgba(240, 203, 72, 0.14), transparent 20%),
+          linear-gradient(180deg, #eef4f1 0%, var(--bg) 100%);
+      }
+
+      .page {
+        max-width: 1420px;
+        margin: 0 auto;
+        padding: 28px;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr) 320px;
+        gap: 24px;
+      }
+
+      .panel {
+        border-radius: 28px;
+        background: var(--paper);
+        backdrop-filter: blur(18px);
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        box-shadow: var(--shadow);
+      }
+
+      .sidebar,
+      .right {
+        padding: 24px;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 24px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 26px;
+      }
+
+      .brand img {
+        width: 44px;
+        height: 44px;
+      }
+
+      .brand-title {
+        font-family: "Fraunces", serif;
+        font-size: 26px;
+        line-height: 1;
+      }
+
+      .brand-sub {
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .nav {
+        display: grid;
+        gap: 10px;
+      }
+
+      .nav-item {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding: 14px 16px;
+        border-radius: 18px;
+        color: var(--muted);
+      }
+
+      .nav-item.active {
+        background: linear-gradient(135deg, rgba(14, 116, 144, 0.12), rgba(221, 238, 234, 0.85));
+        color: var(--ink);
+      }
+
+      .nav-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: currentColor;
+      }
+
+      .sidebar-note {
+        margin-top: 24px;
+        padding: 18px;
+        border-radius: 22px;
+        background: rgba(14, 116, 144, 0.08);
+      }
+
+      .sidebar-note h4,
+      .card h3,
+      .right h3 {
+        margin: 0 0 8px;
+      }
+
+      .sidebar-note p,
+      .card p,
+      .right p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 14px;
+      }
+
+      .main {
+        padding: 24px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+        gap: 18px;
+      }
+
+      .hero-card {
+        padding: 24px;
+        border-radius: 26px;
+      }
+
+      .hero-main {
+        background:
+          linear-gradient(145deg, rgba(14, 116, 144, 0.95), rgba(10, 83, 104, 0.95)),
+          var(--brand);
+        color: white;
+      }
+
+      .hero-main h1 {
+        margin: 14px 0 10px;
+        font-size: 42px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .hero-main p,
+      .hero-side p {
+        margin: 0;
+        line-height: 1.6;
+        font-size: 14px;
+      }
+
+      .hero-top {
+        display: inline-flex;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        font-size: 13px;
+      }
+
+      .hero-stats {
+        margin-top: 20px;
+        display: flex;
+        gap: 24px;
+      }
+
+      .hero-stats strong {
+        display: block;
+        font-size: 24px;
+      }
+
+      .hero-stats span {
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 13px;
+      }
+
+      .hero-side {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(241, 247, 246, 0.92));
+        border: 1px solid var(--line);
+      }
+
+      .hero-side strong {
+        display: block;
+        margin-top: 18px;
+        font-size: 34px;
+      }
+
+      .slider-card,
+      .history-card,
+      .permission-card,
+      .card {
+        padding: 22px;
+      }
+
+      .slider-wrap {
+        margin-top: 18px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .tuning-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .scale {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .scale-step {
+        padding: 16px 0;
+        border-radius: 18px;
+        text-align: center;
+        font-weight: 700;
+        background: white;
+        border: 1px solid var(--line);
+      }
+
+      .scale-step.active {
+        background: linear-gradient(145deg, rgba(14, 116, 144, 0.14), rgba(221, 238, 234, 0.88));
+        border-color: rgba(14, 116, 144, 0.24);
+        color: var(--brand-deep);
+      }
+
+      .scale-step.level-0 { background: rgba(214, 221, 229, 0.45); }
+      .scale-step.level-1 { background: rgba(158, 220, 180, 0.35); }
+      .scale-step.level-2 { background: rgba(69, 199, 125, 0.18); }
+      .scale-step.level-3 { background: rgba(240, 203, 72, 0.16); }
+      .scale-step.level-4 { background: rgba(241, 142, 60, 0.18); }
+      .scale-step.level-5 { background: rgba(217, 77, 77, 0.16); }
+
+      .save-row {
+        margin-top: 18px;
+        display: flex;
+        gap: 12px;
+      }
+
+      .btn {
+        padding: 13px 16px;
+        border-radius: 16px;
+        border: 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .btn.primary {
+        background: var(--brand);
+        color: white;
+      }
+
+      .btn.secondary {
+        background: rgba(14, 116, 144, 0.1);
+        color: var(--brand-deep);
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 18px;
+      }
+
+      .time-chip-row {
+        margin-top: 16px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        padding: 10px 12px;
+        border-radius: 999px;
+        background: white;
+        border: 1px solid var(--line);
+        font-size: 13px;
+      }
+
+      .history-list {
+        margin-top: 14px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .history-item {
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(14, 116, 144, 0.05);
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .right {
+        position: sticky;
+        top: 24px;
+        display: grid;
+        gap: 18px;
+        align-content: start;
+      }
+
+      .card {
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.78);
+        border: 1px solid rgba(17, 32, 45, 0.08);
+      }
+
+      @media (max-width: 1180px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar,
+        .right {
+          position: static;
+        }
+      }
+
+      @media (max-width: 840px) {
+        .page {
+          padding: 16px;
+        }
+
+        .main,
+        .sidebar,
+        .right {
+          padding: 20px;
+        }
+
+        .hero,
+        .two-col,
+        .scale {
+          grid-template-columns: 1fr;
+        }
+
+        .save-row {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="shell">
+        <aside class="panel sidebar">
+          <div class="brand">
+            <img src="./logo.svg" alt="Pollen Arc logo" width="44" height="44" />
+            <div>
+              <div class="brand-title">Pollen Arc</div>
+              <div class="brand-sub">花粉风险地图与行动计划</div>
+            </div>
+          </div>
+
+          <nav class="nav">
+            <div class="nav-item"><span class="nav-dot"></span>今日</div>
+            <div class="nav-item"><span class="nav-dot"></span>地图</div>
+            <div class="nav-item active"><span class="nav-dot"></span>提醒</div>
+            <div class="nav-item"><span class="nav-dot"></span>我的</div>
+          </nav>
+
+          <div class="sidebar-note">
+            <h4>提醒原则</h4>
+            <p>先让用户清楚“何时会提醒”，再让他决定提醒阈值。权限说明和登录同步都只做轻引导，不阻断设置。</p>
+          </div>
+        </aside>
+
+        <main class="panel main">
+          <section class="hero">
+            <div class="hero-card hero-main">
+              <div class="hero-top">当前关注城市 · 上海</div>
+              <h1>当风险达到 4 级时提醒我</h1>
+              <p>你将在每天上午检测窗口前收到一次简洁提醒。静默时段内不会重复打扰，匿名状态也可以先本地保存。</p>
+              <div class="hero-stats">
+                <div>
+                  <strong>4 / 5</strong>
+                  <span>当前阈值</span>
+                </div>
+                <div>
+                  <strong>07:00</strong>
+                  <span>检测窗口</span>
+                </div>
+                <div>
+                  <strong>已开启</strong>
+                  <span>推送状态</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="hero-card hero-side">
+              <h3>同步建议</h3>
+              <p>登录后可把提醒阈值、默认城市和语言设置同步到其他设备。不登录时，设置仍可保存在当前设备。</p>
+              <strong>匿名可用</strong>
+              <p style="margin-top: 6px;">登录只是为了同步，不是使用首页和提醒功能的前置条件。</p>
+            </div>
+          </section>
+
+          <section class="panel slider-card">
+            <h3>阈值设置</h3>
+            <p>当综合风险达到这个等级或更高时，系统将在当天首次检测窗口前推送提醒。</p>
+            <div class="slider-wrap">
+              <div class="tuning-row">
+                <span class="muted">提醒只在当天第一次命中阈值时触发</span>
+                <span class="muted">静默时段 22:00-07:00</span>
+              </div>
+              <div class="scale">
+                <div class="scale-step level-0">0</div>
+                <div class="scale-step level-1">1</div>
+                <div class="scale-step level-2">2</div>
+                <div class="scale-step level-3">3</div>
+                <div class="scale-step level-4 active">4</div>
+                <div class="scale-step level-5">5</div>
+              </div>
+              <div class="row">
+                <strong>当前等级：高风险</strong>
+                <span class="muted">上次保存 08:12</span>
+              </div>
+            </div>
+            <div class="save-row">
+              <button class="btn primary">保存提醒设置</button>
+              <button class="btn secondary">登录后同步</button>
+            </div>
+          </section>
+
+          <section class="two-col">
+            <article class="panel card">
+              <h3>静默时段</h3>
+              <p>静默时段内不发送额外推送，避免夜间打扰。首版仅支持一段连续时间。</p>
+              <div class="time-chip-row">
+                <div class="chip">开始 22:00</div>
+                <div class="chip">结束 07:00</div>
+                <div class="chip">当前开启</div>
+              </div>
+            </article>
+
+            <article class="panel card permission-card">
+              <h3>通知权限状态</h3>
+              <p>当前设备通知已授权。若关闭系统通知，提醒设置会保留，但无法按时推送。</p>
+              <div class="save-row">
+                <button class="btn secondary">前往系统设置</button>
+              </div>
+            </article>
+          </section>
+
+          <section class="panel history-card">
+            <h3>最近 7 天提醒记录</h3>
+            <div class="history-list">
+              <div class="history-item">
+                <div class="row">
+                  <strong>03 月 06 日 · 高风险提醒</strong>
+                  <span class="muted">07:00</span>
+                </div>
+                <p>今天草类与杂草指数升高，建议减少午后户外暴露。</p>
+              </div>
+              <div class="history-item">
+                <div class="row">
+                  <strong>03 月 05 日 · 很高风险提醒</strong>
+                  <span class="muted">07:00</span>
+                </div>
+                <p>未来 12 小时花粉压力持续，建议外出前准备口罩和眼部防护。</p>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <aside class="panel right">
+          <section class="card">
+            <h3>交互逻辑</h3>
+            <p>提醒页的主操作只有两类：调整阈值，或者去系统设置开启权限。避免把页面做成复杂的推送控制台。</p>
+          </section>
+
+          <section class="card">
+            <h3>状态提示</h3>
+            <p>未登录时显示“登录后同步”次级提示卡；未开通知权限时顶替为权限说明卡。两者都不应遮挡阈值主操作。</p>
+          </section>
+
+          <section class="card">
+            <h3>默认策略</h3>
+            <p>首版默认一座关注城市、一次检测窗口、一段静默时段。先把逻辑做对，再扩展多城市和多条件规则。</p>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </body>
+</html>

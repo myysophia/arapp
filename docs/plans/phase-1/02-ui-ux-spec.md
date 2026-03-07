@@ -3,6 +3,8 @@
 ## 1. 目标与成功标准
 - 目标：建立可直接进入线框、高保真和开发实现的 UI 规格，确保风险信息清晰、可信、可行动。
 - 成功标准：视觉风格、页面结构、组件契约、状态机、交互规则和文案键都可被设计与工程直接执行。
+- 当前整理版 Figma 真源：`cf5PnK1WSe5IYRQNGT81fu`
+- 历史素材文件：`l629AeywT4tJwH7B3F2EJM`
 
 ## 2. 范围与非范围
 - 范围：Onboarding、今日、地图、提醒、我的 5 类页面，以及登录入口、空态、错态、离线态、权限态。
@@ -117,6 +119,25 @@
 - 当前 Tab 使用品牌主色，未选中使用 `#64748B`。
 - Tab 标签长度控制在 2-4 个中文字符或 4-8 个英文字符。
 
+### 13.3 Figma 页面映射
+- 当前整理版 Figma 文件：`cf5PnK1WSe5IYRQNGT81fu`
+- 页面分组：
+  - `00 Cover / File Guide`
+  - `01 Foundations / System`
+  - `02 Mobile Core / Catalog`
+  - `03 Main Screens / Home Today`
+  - `03 Main Screens / Map Coverage`
+  - `03 Main Screens / Alerts Threshold`
+  - `03 Main Screens / Profile Account`
+  - `03 Main Screens / Auth Login`
+  - `03 Main Screens / Onboarding Flow`
+  - `04 States & Overlays / Catalog`
+- 使用规则：
+  - `02 Mobile Core / Catalog` 用于移动端主流程总览与开发对照。
+  - `03 Main Screens / ...` 用于单页实现真源。
+  - `04 States & Overlays / Catalog` 用于异常态、空态和弹层真源。
+  - 旧文件 `l629AeywT4tJwH7B3F2EJM` 仅作为历史素材参考，不再作为实现真源。
+
 ## 14. 页面级线框规格
 ### 14.1 Onboarding
 #### 页面目标
@@ -224,6 +245,18 @@
 - props：`stateType`、`titleKey`、`bodyKey`、`ctaKey`
 - 类型：`empty/error/offline/no_permission/no_notification`
 
+### 15.8 Figma 组件命名规则
+- Figma 中的组件命名以全局组件名为准，不再沿用旧的页面前缀式历史命名。
+- 全局组件真源：
+  - `RiskHeroCard`
+  - `PollenBreakdownBar`
+  - `TrendMiniChart`
+  - `ActionAdviceCard`
+  - `SourceTransparencyCard`
+  - `AuthProviderButton`
+  - `StateView`
+- 页面内局部结构允许使用 `Home / Today / Header`、`Map / Coverage / Bottom Sheet` 这类页面级 frame 名称，但共享组件必须回到全局组件名。
+
 ## 16. 状态机
 ### 16.1 首页状态
 - `loading -> success`
@@ -281,3 +314,36 @@
 - 提醒页单页规格：`ui/02c-alerts-screen-spec.md`
 - 我的页单页规格：`ui/02d-profile-screen-spec.md`
 - 后续建议补充：Onboarding 分页规格。
+
+## 22. 已实现对齐快照（2026-03-07）
+### 22.1 已落地页面
+- `TodayView`：已实现 `loading / success / empty / failure` 四态，以及 `Mock / Client` 双模式切换。
+- `MapView`：已实现地图主屏、搜索抽屉、来源抽屉、底部点位详情与 `Mock / Client` 双模式。
+- `AlertsView`：已实现已配置态、空态、失败态、阈值修改、静默时段展示与匿名同步提示。
+- `ProfileView`：已实现匿名态、已登录态、语言切换、单位切换、隐私与数据入口。
+- `LoginView` 与 `OnboardingFlowView`：已完成静态流与路由接入。
+
+### 22.2 已落地共享组件
+- `RiskHeroCard`
+- `TrendMiniChart`
+- `AuthProviderButton`
+- `StateView`
+- `OverlayComponents`
+
+### 22.3 与 Figma 的当前对齐方式
+- `03 Main Screens / Home Today` 对应 `TodayView`
+- `03 Main Screens / Map Coverage` 对应 `MapView`
+- `03 Main Screens / Alerts Threshold` 对应 `AlertsView`
+- `03 Main Screens / Profile Account` 对应 `ProfileView`
+- `03 Main Screens / Auth Login` 对应 `LoginView`
+- `03 Main Screens / Onboarding Flow` 对应 `OnboardingFlowView`
+
+### 22.4 已落地国际化规则
+- 运行时语言切换由 `AppState.localeIdentifier` + `L10n.setLocaleIdentifier(_:)` 驱动。
+- 当前字符串资源已覆盖 `zh-Hans` 与 `en`。
+- 日期、相对时间、百分比与月日格式统一走 `AppFormatters`。
+- API 请求语言参数统一使用 `L10n.apiLanguageIdentifier`。
+
+### 22.5 当前偏差与后续收口点
+- `PollenBreakdownBar` 与 `SourceTransparencyCard` 仍主要以内嵌页面结构存在，后续如继续抽组件，应保持命名与本规范一致。
+- UI 测试当前通过文本驱动导航，后续若要提高稳定性，应补充无歧义的可访问性标识。

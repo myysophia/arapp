@@ -58,6 +58,9 @@
 ## 9. 依赖与里程碑
 - 依赖：提醒工作流、用户偏好接口、登录状态接口、i18n 文案。
 - 里程碑：文档通过后可直接进入提醒页线框与静态页面实现。
+- 对应 Figma 页面：`03 Main Screens / Alerts Threshold`
+- 关联目录页：`02 Mobile Core / Catalog`
+- 关联状态页：`04 States & Overlays / Catalog`
 
 ## 10. 假设与默认值
 - 默认 `enabled=true` 仅在用户主动保存后生效。
@@ -123,12 +126,15 @@
 
 ## 16. Figma 搭建建议
 - Frame：iPhone 15 Pro 主稿，补小屏高度校验。
-- 图层命名：
-  - `Alerts/Header`
-  - `Alerts/LocationCard`
-  - `Alerts/ToggleRow`
-  - `Alerts/ThresholdCard`
-  - `Alerts/QuietHoursCard`
-  - `Alerts/HistoryCard`
-  - `Alerts/PermissionCard`
-  - `Alerts/LoginSyncCard`
+- 页面级 frame 命名：
+  - `Alerts / Threshold / Header`
+  - `Alerts / Threshold / Content`
+  - `Alerts / Threshold / Secondary Section`
+- 共享组件命名：
+  - `AlertLocationCard`
+  - `AlertToggleRow`
+  - `ThresholdSliderCard`
+  - `QuietHoursCard`
+  - `AlertHistoryList`
+  - `NotificationPermissionCard`
+  - `LoginSyncHintCard`
