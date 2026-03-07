@@ -2,14 +2,30 @@ import SwiftUI
 
 struct ProfileView: View {
     @Environment(AppState.self) private var appState
+    @State private var authFlow = AuthFlowModel.shared
 
-    @State private var state = ProfileScreenState.anonymous
+    private var state: ProfileScreenState {
+        ProfileScreenState(
+            auth: authFlow.authMe,
+            displayName: authFlow.displayName,
+            defaultCity: "上海",
+            versionLabel: "Phase 1 Preview"
+        )
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                ProfileHeader(state: state) {
-                    state = state.isAnonymous ? .signedIn : .anonymous
+                ProfileHeader(state: state, statusText: authFlow.statusChipText)
+
+                if let errorMessage = authFlow.errorMessage {
+                    AuthFlowNoticeCard(
+                        title: "认证流程失败",
+                        detail: errorMessage,
+                        systemImage: "exclamationmark.triangle"
+                    ) {
+                        authFlow.dismissError()
+                    }
                 }
 
                 AccountStatusCard(state: state)
@@ -26,7 +42,9 @@ struct ProfileView: View {
                 PrivacySection(isAnonymous: state.isAnonymous)
                 AboutSection(versionLabel: state.versionLabel)
                 DangerZone(isAnonymous: state.isAnonymous) {
-                    state = .anonymous
+                    Task {
+                        await authFlow.signOut()
+                    }
                 }
             }
             .padding(.horizontal, AppSpacing.md)
@@ -35,12 +53,15 @@ struct ProfileView: View {
         .background(AppColor.background.ignoresSafeArea())
         .navigationTitle(AppTab.profile.title)
         .navigationBarTitleDisplayMode(.large)
+        .task {
+            await authFlow.bootstrapIfNeeded()
+        }
     }
 }
 
 private struct ProfileHeader: View {
     let state: ProfileScreenState
-    let onTogglePreviewState: () -> Void
+    let statusText: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -58,15 +79,14 @@ private struct ProfileHeader: View {
 
                 Spacer(minLength: AppSpacing.md)
 
-                Button(action: onTogglePreviewState) {
-                    Text(state.isAnonymous ? "切到已登录预览" : "切到匿名预览")
+                if let statusText {
+                    Text(statusText)
                         .font(AppTypography.captionStrong)
                         .padding(.horizontal, AppSpacing.sm)
                         .padding(.vertical, AppSpacing.xs)
                         .background(AppColor.surfaceMuted, in: Capsule())
+                        .foregroundStyle(AppColor.brandDeep)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(AppColor.brandDeep)
             }
 
             if state.isAnonymous {
@@ -78,6 +98,48 @@ private struct ProfileHeader: View {
                     .background(AppColor.surfaceMuted, in: Capsule())
             }
         }
+    }
+}
+
+private struct AuthFlowNoticeCard: View {
+    let title: String
+    let detail: String
+    let systemImage: String
+    let onDismiss: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack(alignment: .top, spacing: AppSpacing.sm) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(AppColor.warning)
+                    .frame(width: 20, height: 20)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(title)
+                        .font(AppTypography.bodyStrong)
+                        .foregroundStyle(AppColor.textPrimary)
+
+                    Text(detail)
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            Button("清除提示") {
+                onDismiss()
+            }
+            .buttonStyle(.plain)
+            .font(AppTypography.captionStrong)
+            .foregroundStyle(AppColor.brand)
+        }
+        .padding(AppSpacing.lg)
+        .background(
+            RoundedRectangle(cornerRadius: AppRadius.lg)
+                .fill(AppColor.surface)
+                .shadow(color: AppShadow.cardColor, radius: AppShadow.cardRadius, x: AppShadow.cardX, y: AppShadow.cardY)
+        )
     }
 }
 
@@ -439,20 +501,6 @@ private struct ProfileScreenState {
     let defaultCity: String
     let versionLabel: String
 
-    static let anonymous = ProfileScreenState(
-        auth: .demoAnonymous,
-        displayName: "匿名使用中",
-        defaultCity: "上海",
-        versionLabel: "Phase 1 Preview"
-    )
-
-    static let signedIn = ProfileScreenState(
-        auth: .demoSignedIn,
-        displayName: "王九日",
-        defaultCity: "上海",
-        versionLabel: "Phase 1 Preview"
-    )
-
     var isAnonymous: Bool {
         auth.isAnonymous
     }
@@ -482,10 +530,6 @@ private struct ProfileScreenState {
     }
 }
 
-private extension AuthMe {
-    static let demoAnonymous = AuthMe(userID: nil, isAnonymous: true, providers: [], locale: "zh-Hans", region: "CN", unitSystem: .metric)
-    static let demoSignedIn = AuthMe(userID: UUID(), isAnonymous: false, providers: [.google, .apple], locale: "zh-Hans", region: "CN", unitSystem: .metric)
-}
 
 private extension AuthProvider {
     var displayName: String {

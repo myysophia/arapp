@@ -2,13 +2,31 @@ import SwiftUI
 
 struct LoginView: View {
     @Environment(AppState.self) private var appState
+    @State private var authFlow = AuthFlowModel.shared
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.xl) {
                 headerSection
-                providerSection
-                anonymousSection
+
+                if let errorMessage = authFlow.errorMessage {
+                    loginStatusCard(
+                        title: "认证流程失败",
+                        detail: errorMessage,
+                        systemImage: "exclamationmark.triangle",
+                        actionTitle: "清除错误"
+                    ) {
+                        authFlow.dismissError()
+                    }
+                }
+
+                if authFlow.isAnonymous {
+                    providerSection
+                    anonymousSection
+                } else {
+                    signedInSection
+                }
+
                 trustSection
             }
             .padding(.horizontal, AppSpacing.md)
@@ -24,6 +42,9 @@ struct LoginView: View {
                 }
             }
         }
+        .task {
+            await authFlow.bootstrapIfNeeded()
+        }
     }
 
     private var headerSection: some View {
@@ -33,17 +54,17 @@ struct LoginView: View {
                     .fill(AppColor.brand)
                     .frame(width: 68, height: 68)
 
-                Image(systemName: "leaf.circle.fill")
+                Image(systemName: authFlow.isAnonymous ? "leaf.circle.fill" : "checkmark.shield.fill")
                     .font(.system(size: 30, weight: .semibold))
                     .foregroundStyle(.white)
             }
 
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                Text("登录后同步你的提醒设置")
+                Text(authFlow.isAnonymous ? "登录后同步你的提醒设置" : "认证假流程已完成")
                     .font(AppTypography.titleHero)
                     .foregroundStyle(AppColor.textPrimary)
 
-                Text("基础花粉风险查看无需登录。登录仅用于同步提醒、语言和后续多设备配置。")
+                Text(authFlow.isAnonymous ? "基础花粉风险查看无需登录。登录仅用于同步提醒、语言和后续多设备配置。" : "当前使用 MockAuthService 模拟登录成功，会在返回“我的”页面后直接反映为已登录状态。")
                     .font(AppTypography.body)
                     .foregroundStyle(AppColor.textSecondary)
             }
@@ -51,7 +72,7 @@ struct LoginView: View {
             HStack(spacing: AppSpacing.xs) {
                 benefitChip(title: "同步提醒")
                 benefitChip(title: "保留偏好")
-                benefitChip(title: "后续支持多设备")
+                benefitChip(title: authFlow.isSigningIn ? "登录中" : (authFlow.isAnonymous ? "可选登录" : "已连接"))
             }
         }
         .padding(AppSpacing.lg)
@@ -72,38 +93,16 @@ struct LoginView: View {
                 .font(AppTypography.titleCard)
                 .foregroundStyle(AppColor.textPrimary)
 
-            LoginProviderButton(
-                title: "使用 Google 继续",
-                subtitle: "适合需要快速同步设置的用户",
-                icon: "globe",
-                backgroundColor: AppColor.surface,
-                foregroundColor: AppColor.textPrimary,
-                showsBorder: true
-            )
-
-            LoginProviderButton(
-                title: "使用 GitHub 继续",
-                subtitle: "适合开发者账号体系保持一致",
-                icon: "chevron.left.forwardslash.chevron.right",
-                backgroundColor: AppColor.textPrimary,
-                foregroundColor: .white,
-                showsBorder: false
-            )
-
-            LoginProviderButton(
-                title: "使用 Apple 继续",
-                subtitle: "遵循 iOS 原生登录习惯",
-                icon: "apple.logo",
-                backgroundColor: .black,
-                foregroundColor: .white,
-                showsBorder: false
-            )
+            providerButton(for: .google, icon: "globe", backgroundColor: AppColor.surface, foregroundColor: AppColor.textPrimary, showsBorder: true)
+            providerButton(for: .github, icon: "chevron.left.forwardslash.chevron.right", backgroundColor: AppColor.textPrimary, foregroundColor: .white, showsBorder: false)
+            providerButton(for: .apple, icon: "apple.logo", backgroundColor: .black, foregroundColor: .white, showsBorder: false)
         }
     }
 
     private var anonymousSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             Button {
+                authFlow.continueAnonymously()
                 appState.route = nil
             } label: {
                 HStack {
@@ -127,10 +126,23 @@ struct LoginView: View {
                 .clipShape(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
             }
             .buttonStyle(.plain)
+            .disabled(authFlow.isSigningIn)
 
             Text("当前阶段仅提供静态流程展示，真实认证会在后续接入 Supabase Auth。")
                 .font(AppTypography.caption)
                 .foregroundStyle(AppColor.textSecondary)
+        }
+    }
+
+    private var signedInSection: some View {
+        loginStatusCard(
+            title: "已完成假登录",
+            detail: "当前会话已写入共享的 AuthFlowModel。返回“我的”页面后，你会看到已登录状态和已绑定 provider。",
+            systemImage: "person.crop.circle.badge.checkmark",
+            actionTitle: "返回我的页面"
+        ) {
+            appState.selectedTab = .profile
+            appState.route = nil
         }
     }
 
@@ -158,6 +170,63 @@ struct LoginView: View {
                 )
             }
         }
+    }
+
+    private func providerButton(for provider: AuthProvider, icon: String, backgroundColor: Color, foregroundColor: Color, showsBorder: Bool) -> some View {
+        LoginProviderButton(
+            title: authFlow.providerTitle(provider),
+            subtitle: authFlow.providerSubtitle(provider),
+            icon: icon,
+            backgroundColor: backgroundColor,
+            foregroundColor: foregroundColor,
+            showsBorder: showsBorder,
+            isDisabled: authFlow.isSigningIn
+        ) {
+            Task {
+                await authFlow.signIn(with: provider)
+            }
+        }
+    }
+
+    private func loginStatusCard(title: String, detail: String, systemImage: String, actionTitle: String, action: @escaping () -> Void) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack(alignment: .top, spacing: AppSpacing.sm) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(AppColor.brand)
+                    .frame(width: 24, height: 24)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(title)
+                        .font(AppTypography.bodyStrong)
+                        .foregroundStyle(AppColor.textPrimary)
+
+                    Text(detail)
+                        .font(AppTypography.body)
+                        .foregroundStyle(AppColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            Button(actionTitle) {
+                action()
+            }
+            .buttonStyle(.plain)
+            .font(AppTypography.bodyStrong)
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, AppSpacing.sm)
+            .background(AppColor.brand, in: RoundedRectangle(cornerRadius: AppRadius.md))
+        }
+        .padding(AppSpacing.lg)
+        .background(AppColor.surface)
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous))
+        .shadow(
+            color: AppShadow.cardColor,
+            radius: AppShadow.cardRadius,
+            x: AppShadow.cardX,
+            y: AppShadow.cardY
+        )
     }
 
     private func benefitChip(title: String) -> some View {
@@ -202,9 +271,11 @@ private struct LoginProviderButton: View {
     let backgroundColor: Color
     let foregroundColor: Color
     let showsBorder: Bool
+    let isDisabled: Bool
+    let onTap: () -> Void
 
     var body: some View {
-        Button(action: {}) {
+        Button(action: onTap) {
             HStack(spacing: AppSpacing.md) {
                 Image(systemName: icon)
                     .font(.system(size: 18, weight: .semibold))
@@ -219,6 +290,11 @@ private struct LoginProviderButton: View {
                 }
 
                 Spacer()
+
+                if isDisabled {
+                    ProgressView()
+                        .tint(foregroundColor)
+                }
             }
             .foregroundStyle(foregroundColor)
             .padding(AppSpacing.md)
@@ -229,8 +305,10 @@ private struct LoginProviderButton: View {
                     .stroke(showsBorder ? AppColor.line : .clear, lineWidth: 1)
             }
             .clipShape(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
+            .opacity(isDisabled ? 0.72 : 1)
         }
         .buttonStyle(.plain)
+        .disabled(isDisabled)
     }
 }
 
