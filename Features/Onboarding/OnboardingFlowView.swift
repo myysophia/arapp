@@ -5,21 +5,21 @@ struct OnboardingFlowView: View {
     @State private var currentStep = 0
 
     private let steps = [
-        "把花粉风险变成今天就能执行的提醒",
-        "允许定位，让首页和地图直接落到你关心的城市",
-        "允许通知，在高风险到来前收到一次简洁提醒"
+        "onboarding.step.1",
+        "onboarding.step.2",
+        "onboarding.step.3"
     ]
 
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
 
-            Text("Onboarding")
+            Text(L10n.tr("onboarding.label"))
                 .font(.caption.weight(.semibold))
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
 
-            Text(steps[currentStep])
+            Text(L10n.tr(steps[currentStep]))
                 .font(.largeTitle.weight(.bold))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
@@ -35,13 +35,13 @@ struct OnboardingFlowView: View {
             Spacer()
 
             VStack(spacing: 12) {
-                Button(currentStep == steps.count - 1 ? "完成" : "继续") {
+                Button(currentStep == steps.count - 1 ? L10n.tr("common.done") : L10n.tr("common.continue")) {
                     advance()
                 }
                 .buttonStyle(.borderedProminent)
                 .frame(maxWidth: .infinity)
 
-                Button("跳过") {
+                Button(L10n.tr("common.skip")) {
                     finish()
                 }
                 .buttonStyle(.bordered)

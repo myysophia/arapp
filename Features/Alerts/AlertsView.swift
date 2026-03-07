@@ -51,8 +51,8 @@ struct AlertsView: View {
         switch screenModel.contentState {
         case .loading:
             AlertsStatusCard(
-                title: "正在加载提醒配置",
-                detail: "正在同步阈值、静默时段和最近提醒记录。",
+                title: L10n.tr("alerts.loading.title"),
+                detail: L10n.tr("alerts.loading.detail"),
                 systemImage: "bell.badge"
             )
         case let .empty(title, detail):
@@ -60,7 +60,7 @@ struct AlertsView: View {
                 title: title,
                 detail: detail,
                 systemImage: "tray",
-                actionTitle: "切回已配置",
+                actionTitle: L10n.tr("alerts.action.back_to_configured"),
                 action: {
                     screenModel.dataMode = .mock
                     screenModel.mockScenario = .configured
@@ -71,7 +71,7 @@ struct AlertsView: View {
                 title: title,
                 detail: detail,
                 systemImage: "wifi.exclamationmark",
-                actionTitle: retryable ? "重新加载" : nil,
+                actionTitle: retryable ? L10n.tr("common.reload") : nil,
                 action: retryable ? { Task { await screenModel.reload() } } : nil
             )
         case let .success(state):
@@ -95,25 +95,25 @@ private struct AlertsModeCard: View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("提醒数据模式")
+                    Text(L10n.tr("alerts.mode.title"))
                         .font(AppTypography.titleCard)
                         .foregroundStyle(AppColor.textPrimary)
 
-                    Text("当前阶段校验提醒配置在 Mock 和 Client 模式下的状态完整性。")
+                    Text(L10n.tr("alerts.mode.subtitle"))
                         .font(AppTypography.caption)
                         .foregroundStyle(AppColor.textSecondary)
                 }
 
                 Spacer()
 
-                Button("重载") {
+                Button(L10n.tr("common.reload")) {
                     reloadAction()
                 }
                 .font(AppTypography.captionStrong)
                 .foregroundStyle(AppColor.brand)
             }
 
-            Picker("提醒模式", selection: $dataMode) {
+            Picker(L10n.tr("alerts.mode.picker"), selection: $dataMode) {
                 ForEach(AlertsScreenModel.DataMode.allCases) { mode in
                     Text(mode.title).tag(mode)
                 }
@@ -121,7 +121,7 @@ private struct AlertsModeCard: View {
             .pickerStyle(.segmented)
 
             if dataMode == .mock {
-                Picker("Mock 场景", selection: $mockScenario) {
+                Picker(L10n.tr("alerts.scenario.picker"), selection: $mockScenario) {
                     ForEach(AlertsScreenModel.MockScenario.allCases) { scenario in
                         Text(scenario.title).tag(scenario)
                     }
@@ -233,7 +233,7 @@ private struct AlertLocationCard: View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("关注城市")
+                    Text(L10n.tr("alerts.location.title"))
                         .font(AppTypography.captionStrong)
                         .foregroundStyle(AppColor.textSecondary)
 
@@ -241,14 +241,14 @@ private struct AlertLocationCard: View {
                         .font(AppTypography.titleCard)
                         .foregroundStyle(AppColor.textPrimary)
 
-                    Text("最近更新于 \(state.subscription.updatedAtText)")
+                    Text(L10n.format("alerts.location.updated_at", state.subscription.updatedAtText))
                         .font(AppTypography.caption)
                         .foregroundStyle(AppColor.textSecondary)
                 }
 
                 Spacer(minLength: AppSpacing.md)
 
-                Text(state.subscription.enabled ? "已开启" : "已关闭")
+                Text(state.subscription.enabled ? L10n.tr("common.enabled") : L10n.tr("common.disabled"))
                     .font(AppTypography.bodyStrong)
                     .foregroundStyle(state.subscription.enabled ? .white : AppColor.textSecondary)
                     .padding(.horizontal, AppSpacing.sm)
@@ -300,19 +300,19 @@ private struct AlertToggleCard: View {
 
     var body: some View {
         AlertsCardContainer(
-            title: "提醒开关",
-            subtitle: isEnabled ? "每天 07:00 检查阈值并在命中时推送" : "关闭后仍保留配置，但不会发送提醒"
+            title: L10n.tr("alerts.toggle.title"),
+            subtitle: isEnabled ? L10n.tr("alerts.toggle.subtitle.enabled") : L10n.tr("alerts.toggle.subtitle.disabled")
         ) {
             Button {
                 onToggle(!isEnabled)
             } label: {
                 HStack(spacing: AppSpacing.md) {
                     VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                        Text(isEnabled ? "风险提醒已启用" : "风险提醒已关闭")
+                        Text(isEnabled ? L10n.tr("alerts.toggle.headline.enabled") : L10n.tr("alerts.toggle.headline.disabled"))
                             .font(AppTypography.bodyStrong)
                             .foregroundStyle(AppColor.textPrimary)
 
-                        Text("通知权限与静默时段会影响最终触达")
+                        Text(L10n.tr("alerts.toggle.helper"))
                             .font(AppTypography.caption)
                             .foregroundStyle(AppColor.textSecondary)
                     }
@@ -343,16 +343,16 @@ private struct ThresholdSliderCard: View {
     private let availableLevels: [AppRiskLevel] = [.none, .veryLow, .low, .moderate, .high, .veryHigh]
 
     var body: some View {
-        AlertsCardContainer(title: "阈值设置", subtitle: "达到该等级及以上时触发提醒") {
+        AlertsCardContainer(title: L10n.tr("alerts.threshold.title"), subtitle: L10n.tr("alerts.threshold.subtitle")) {
             VStack(alignment: .leading, spacing: AppSpacing.md) {
                 HStack {
-                    Text("当前阈值")
+                    Text(L10n.tr("alerts.threshold.current"))
                         .font(AppTypography.bodyStrong)
                         .foregroundStyle(AppColor.textPrimary)
 
                     Spacer()
 
-                    Text(level.displayText)
+                    Text(level.thresholdDisplayText)
                         .font(AppTypography.bodyStrong)
                         .foregroundStyle(level.badgeForeground)
                         .padding(.horizontal, AppSpacing.sm)
@@ -402,26 +402,26 @@ private struct QuietHoursCard: View {
     let isEnabled: Bool
 
     var body: some View {
-        AlertsCardContainer(title: "静默时段", subtitle: quietHours.enabled ? quietHoursText : "当前未启用静默时段") {
+        AlertsCardContainer(title: L10n.tr("alerts.quiet_hours.title"), subtitle: quietHours.enabled ? quietHoursText : L10n.tr("alerts.quiet_hours.subtitle.disabled")) {
             VStack(alignment: .leading, spacing: AppSpacing.md) {
                 HStack {
-                    Text(quietHours.enabled ? "已开启" : "已关闭")
+                    Text(quietHours.enabled ? L10n.tr("common.enabled") : L10n.tr("common.disabled"))
                         .font(AppTypography.bodyStrong)
                         .foregroundStyle(AppColor.textPrimary)
 
                     Spacer()
 
-                    Text(quietHours.enabled ? "夜间抑制" : "随时提醒")
+                    Text(quietHours.enabled ? L10n.tr("alerts.quiet_hours.badge.enabled") : L10n.tr("alerts.quiet_hours.badge.disabled"))
                         .font(AppTypography.captionStrong)
                         .foregroundStyle(AppColor.textSecondary)
                 }
 
                 HStack(spacing: AppSpacing.md) {
-                    QuietHoursPill(title: "开始", value: quietHours.start ?? "--:--")
-                    QuietHoursPill(title: "结束", value: quietHours.end ?? "--:--")
+                    QuietHoursPill(title: L10n.tr("common.start"), value: quietHours.start ?? "--:--")
+                    QuietHoursPill(title: L10n.tr("common.end"), value: quietHours.end ?? "--:--")
                 }
 
-                Text(isEnabled ? "静默时段内命中阈值将延迟到下个可提醒窗口。" : "提醒关闭时仅展示当前配置，不触发推送。")
+                Text(isEnabled ? L10n.tr("alerts.quiet_hours.detail.enabled") : L10n.tr("alerts.quiet_hours.detail.disabled"))
                     .font(AppTypography.caption)
                     .foregroundStyle(AppColor.textSecondary)
             }
@@ -460,7 +460,7 @@ private struct AlertHistoryCard: View {
     let items: [AlertHistoryItem]
 
     var body: some View {
-        AlertsCardContainer(title: "最近 7 天提醒记录", subtitle: "仅保留摘要，不展示原始 payload") {
+        AlertsCardContainer(title: L10n.tr("alerts.history.title"), subtitle: L10n.tr("alerts.history.subtitle")) {
             VStack(spacing: AppSpacing.md) {
                 ForEach(items) { item in
                     HStack(alignment: .top, spacing: AppSpacing.sm) {
@@ -492,18 +492,18 @@ private struct NotificationPermissionCard: View {
     let permissionState: AlertsNotificationPermission
 
     var body: some View {
-        AlertsCardContainer(title: "通知权限", subtitle: permissionState.subtitle) {
+        AlertsCardContainer(title: L10n.tr("alerts.permission.title"), subtitle: permissionState.subtitle) {
             VStack(alignment: .leading, spacing: AppSpacing.md) {
                 Label(permissionState.headline, systemImage: permissionState.systemImage)
                     .font(AppTypography.bodyStrong)
                     .foregroundStyle(AppColor.textPrimary)
 
-                Text("即使你已经保存阈值，系统权限未开启时也无法真正送达提醒。")
+                Text(L10n.tr("alerts.permission.detail"))
                     .font(AppTypography.body)
                     .foregroundStyle(AppColor.textSecondary)
 
                 Button(action: {}) {
-                    Text("前往系统设置")
+                    Text(L10n.tr("alerts.permission.action"))
                         .font(AppTypography.bodyStrong)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, AppSpacing.sm)
@@ -523,14 +523,14 @@ private struct LoginSyncHintCard: View {
     let onLogin: () -> Void
 
     var body: some View {
-        AlertsCardContainer(title: "同步提醒设置", subtitle: "未登录时仅保存在本机") {
+        AlertsCardContainer(title: L10n.tr("alerts.sync.title"), subtitle: L10n.tr("alerts.sync.subtitle")) {
             VStack(alignment: .leading, spacing: AppSpacing.md) {
-                Text("登录后可在未来支持跨设备同步提醒配置，但基础提醒功能本身不依赖登录。")
+                Text(L10n.tr("alerts.sync.detail"))
                     .font(AppTypography.body)
                     .foregroundStyle(AppColor.textSecondary)
 
                 Button(action: onLogin) {
-                    Text("登录后可同步")
+                    Text(L10n.tr("alerts.sync.action"))
                         .font(AppTypography.bodyStrong)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, AppSpacing.sm)
@@ -549,7 +549,7 @@ private struct SaveSettingsButton: View {
 
     var body: some View {
         Button(action: onSave) {
-            Text(isEnabled ? "保存提醒设置" : "保存为关闭状态")
+            Text(isEnabled ? L10n.tr("alerts.save.enabled") : L10n.tr("alerts.save.disabled"))
                 .font(AppTypography.bodyStrong)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AppSpacing.md)
@@ -600,7 +600,7 @@ struct AlertsScreenState {
     static let demo: AlertsScreenState = {
         AlertsScreenState(
             auth: .demoAnonymous,
-            locationName: "上海",
+            locationName: L10n.tr("common.default_city"),
             subscription: .demo,
             history: AlertHistoryItem.demoHistory,
             notificationPermission: .denied
@@ -608,19 +608,21 @@ struct AlertsScreenState {
     }()
 
     var pageSummary: String {
-        subscription.enabled ? "为高风险时刻提前准备" : "提醒已暂停，配置仍保留"
+        subscription.enabled ? L10n.tr("alerts.page_summary.enabled") : L10n.tr("alerts.page_summary.disabled")
     }
 
     var pageDetail: String {
-        auth.isAnonymous ? "当前设置先保存在本机，登录后可支持同步。" : "设置将在保存后同步到当前账户。"
+        auth.isAnonymous ? L10n.tr("alerts.page_detail.anonymous") : L10n.tr("alerts.page_detail.signed_in")
     }
 
     var thresholdText: String {
-        "阈值 \(subscription.thresholdLevel.uiLevel.displayText)"
+        L10n.format("alerts.threshold.badge", subscription.thresholdLevel.uiLevel.thresholdDisplayText)
     }
 
     var quietHoursText: String {
-        subscription.quietHours.enabled ? "静默 \((subscription.quietHours.start ?? "--:--")) - \((subscription.quietHours.end ?? "--:--"))" : "未设置静默"
+        subscription.quietHours.enabled
+            ? L10n.format("alerts.quiet_hours.badge", subscription.quietHours.start ?? "--:--", subscription.quietHours.end ?? "--:--")
+            : L10n.tr("alerts.quiet_hours.none")
     }
 }
 
@@ -632,22 +634,22 @@ enum AlertsNotificationPermission {
     var headline: String {
         switch self {
         case .granted:
-            "通知权限已开启"
+            L10n.tr("alerts.permission.headline.granted")
         case .denied:
-            "系统通知已关闭"
+            L10n.tr("alerts.permission.headline.denied")
         case .notDetermined:
-            "尚未授权通知"
+            L10n.tr("alerts.permission.headline.not_determined")
         }
     }
 
     var subtitle: String {
         switch self {
         case .granted:
-            "系统可正常触达提醒"
+            L10n.tr("alerts.permission.subtitle.granted")
         case .denied:
-            "需要先开启系统通知，提醒才会真正送达"
+            L10n.tr("alerts.permission.subtitle.denied")
         case .notDetermined:
-            "建议先授权，再保存提醒配置"
+            L10n.tr("alerts.permission.subtitle.not_determined")
         }
     }
 
@@ -680,7 +682,7 @@ extension AlertSubscription {
     )
 
     var updatedAtText: String {
-        updatedAt.formatted(.dateTime.month(.twoDigits).day(.twoDigits).hour().minute())
+        AppFormatters.shortDateTime(updatedAt)
     }
 
     func withEnabled(_ enabled: Bool) -> AlertSubscription {
@@ -710,39 +712,33 @@ extension AlertSubscription {
 
 private extension AlertHistoryItem {
     static let demoHistory: [AlertHistoryItem] = [
-        AlertHistoryItem(id: UUID(), date: "2026-03-06T07:00:00Z", riskLevel: .high, title: "周五 07:00 草类花粉升至 4 级"),
-        AlertHistoryItem(id: UUID(), date: "2026-03-04T07:00:00Z", riskLevel: .moderate, title: "周三 07:00 总体风险达到 3 级")
+        AlertHistoryItem(id: UUID(), date: "2026-03-06T07:00:00Z", riskLevel: .high, title: L10n.tr("alerts.history.demo.1")),
+        AlertHistoryItem(id: UUID(), date: "2026-03-04T07:00:00Z", riskLevel: .moderate, title: L10n.tr("alerts.history.demo.2"))
     ]
 
     var displayDate: String {
         guard let dateValue = ISO8601DateFormatter().date(from: date) else {
             return date
         }
-        return dateValue.formatted(.dateTime.month(.twoDigits).day(.twoDigits).hour().minute())
-    }
-}
-
-private extension PollenRiskLevel {
-    var uiLevel: AppRiskLevel {
-        AppRiskLevel(rawValue: rawValue) ?? .none
+        return AppFormatters.shortDateTime(dateValue)
     }
 }
 
 private extension AppRiskLevel {
-    var displayText: String {
+    var thresholdDisplayText: String {
         switch self {
         case .none:
-            "0 级"
+            L10n.tr("alerts.level.0")
         case .veryLow:
-            "1 级"
+            L10n.tr("alerts.level.1")
         case .low:
-            "2 级"
+            L10n.tr("alerts.level.2")
         case .moderate:
-            "3 级"
+            L10n.tr("alerts.level.3")
         case .high:
-            "4 级"
+            L10n.tr("alerts.level.4")
         case .veryHigh:
-            "5 级"
+            L10n.tr("alerts.level.5")
         }
     }
 

@@ -44,6 +44,7 @@ struct AppRootView: View {
                 }
             }
         }
+        .environment(\.locale, Locale(identifier: appState.localeIdentifier))
     }
 
     private var selectedTabBinding: Binding<AppTab> {

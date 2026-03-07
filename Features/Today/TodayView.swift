@@ -58,7 +58,7 @@ struct TodayView: View {
                 detail: detail,
                 systemImage: "tray",
                 tintColor: AppColor.textSecondary,
-                actionTitle: "切回 Mock 成功态",
+                actionTitle: L10n.tr("today.action.back_to_mock_success"),
                 action: {
                     screenModel.dataMode = .mock
                     screenModel.mockScenario = .success
@@ -70,7 +70,7 @@ struct TodayView: View {
                 detail: detail,
                 systemImage: "wifi.exclamationmark",
                 tintColor: AppColor.danger,
-                actionTitle: retryable ? "重新加载" : nil,
+                actionTitle: retryable ? L10n.tr("common.reload") : nil,
                 action: retryable ? { Task { await screenModel.reload() } } : nil
             )
         case let .success(screenState):
@@ -90,25 +90,25 @@ private struct TodayModeCard: View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("数据模式")
+                    Text(L10n.tr("today.mode.title"))
                         .font(AppTypography.titleCard)
                         .foregroundStyle(AppColor.textPrimary)
 
-                    Text("Today 页面支持 Mock 和 Client 两条数据链路。")
+                    Text(L10n.tr("today.mode.subtitle"))
                         .font(AppTypography.caption)
                         .foregroundStyle(AppColor.textSecondary)
                 }
 
                 Spacer()
 
-                Button("重载") {
+                Button(L10n.tr("common.reload")) {
                     reloadAction()
                 }
                 .font(AppTypography.captionStrong)
                 .foregroundStyle(AppColor.brand)
             }
 
-            Picker("数据模式", selection: $dataMode) {
+            Picker(L10n.tr("today.mode.picker"), selection: $dataMode) {
                 ForEach(TodayScreenModel.DataMode.allCases) { mode in
                     Text(mode.title).tag(mode)
                 }
@@ -116,7 +116,7 @@ private struct TodayModeCard: View {
             .pickerStyle(.segmented)
 
             if dataMode == .mock {
-                Picker("Mock 场景", selection: $mockScenario) {
+                Picker(L10n.tr("today.scenario.picker"), selection: $mockScenario) {
                     ForEach(TodayScreenModel.MockScenario.allCases) { scenario in
                         Text(scenario.title).tag(scenario)
                     }
@@ -141,14 +141,14 @@ private struct TodaySuccessContent: View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
             TodayHeader(summary: screenState.summary)
             RiskHeroCard(
-                eyebrow: "当前风险",
+                eyebrow: L10n.tr("today.hero.eyebrow"),
                 title: screenState.summary.riskTitle,
                 description: screenState.summary.riskDescription,
                 badgeText: screenState.summary.riskBadgeText,
                 badgeColor: screenState.summary.riskBadgeColor,
                 badgeForeground: screenState.summary.riskBadgeForeground,
                 metrics: screenState.summary.heroMetrics,
-                primaryActionTitle: "开启提醒"
+                primaryActionTitle: L10n.tr("today.hero.action")
             ) {
                 openAlerts()
             }
@@ -183,11 +183,11 @@ private struct TodayBreakdownCard: View {
     let summary: PollenSummary
 
     var body: some View {
-        TodayCardContainer(title: "分项概览", subtitle: "树 / 草 / 杂草") {
+        TodayCardContainer(title: L10n.tr("today.breakdown.title"), subtitle: L10n.tr("today.breakdown.subtitle")) {
             VStack(spacing: AppSpacing.md) {
-                TodayBreakdownRow(title: "树", level: summary.treeLevel.uiLevel)
-                TodayBreakdownRow(title: "草", level: summary.grassLevel.uiLevel)
-                TodayBreakdownRow(title: "杂草", level: summary.weedLevel.uiLevel)
+                TodayBreakdownRow(title: L10n.tr("pollen.tree"), level: summary.treeLevel.uiLevel)
+                TodayBreakdownRow(title: L10n.tr("pollen.grass"), level: summary.grassLevel.uiLevel)
+                TodayBreakdownRow(title: L10n.tr("pollen.weed"), level: summary.weedLevel.uiLevel)
             }
         }
     }
@@ -231,17 +231,17 @@ private struct TodayTrendCard: View {
     let forecast: PollenForecast
 
     var body: some View {
-        TodayCardContainer(title: "未来 3 天趋势", subtitle: trendSummary) {
+        TodayCardContainer(title: L10n.tr("today.trend.title"), subtitle: trendSummary) {
             TrendMiniChart(items: forecast.trendItems)
         }
     }
 
     private var trendSummary: String {
         guard let peakDay = forecast.days.max(by: { $0.riskOverall.rawValue < $1.riskOverall.rawValue }) else {
-            return "保持观察"
+            return L10n.tr("today.trend.steady")
         }
 
-        return "高峰出现在 \(peakDay.displayDate)"
+        return L10n.format("today.trend.peak", peakDay.displayDate)
     }
 }
 
@@ -250,7 +250,7 @@ private struct TodayAdviceCard: View {
     let adviceItems: [TodayAdviceItem]
 
     var body: some View {
-        TodayCardContainer(title: "行动建议", subtitle: summary.riskDescription) {
+        TodayCardContainer(title: L10n.tr("today.advice.title"), subtitle: summary.riskDescription) {
             VStack(alignment: .leading, spacing: AppSpacing.md) {
                 ForEach(adviceItems) { item in
                     HStack(alignment: .top, spacing: AppSpacing.sm) {
@@ -280,7 +280,7 @@ private struct TodaySourceCard: View {
     let source: SourceMeta
 
     var body: some View {
-        TodayCardContainer(title: "数据来源", subtitle: "风险参考，非医疗建议") {
+        TodayCardContainer(title: L10n.tr("today.source.title"), subtitle: L10n.tr("today.source.subtitle")) {
             VStack(alignment: .leading, spacing: AppSpacing.sm) {
                 HStack {
                     Text(source.providerName)
@@ -305,7 +305,7 @@ private struct TodaySourceCard: View {
                     .font(AppTypography.caption)
                     .foregroundStyle(AppColor.textSecondary)
 
-                Text("更新于 \(source.updatedAt.relativeText)")
+                Text(L10n.format("common.updated_at", source.updatedAt.relativeText))
                     .font(AppTypography.caption)
                     .foregroundStyle(AppColor.textDisabled)
             }
@@ -315,17 +315,17 @@ private struct TodaySourceCard: View {
 
 private struct TodayLoadingCard: View {
     var body: some View {
-        TodayCardContainer(title: "正在加载 Today 页面", subtitle: "读取 summary / forecast / source meta") {
+        TodayCardContainer(title: L10n.tr("today.loading.title"), subtitle: L10n.tr("today.loading.subtitle")) {
             HStack(spacing: AppSpacing.md) {
                 ProgressView()
                     .tint(AppColor.brand)
 
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("正在同步花粉风险数据")
+                    Text(L10n.tr("today.loading.body_title"))
                         .font(AppTypography.bodyStrong)
                         .foregroundStyle(AppColor.textPrimary)
 
-                    Text("如果你切到 Client 模式，页面会优先尝试读取 Edge Functions。")
+                    Text(L10n.tr("today.loading.body_detail"))
                         .font(AppTypography.caption)
                         .foregroundStyle(AppColor.textSecondary)
                 }

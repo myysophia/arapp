@@ -13,9 +13,9 @@ final class AlertsScreenModel {
         var title: String {
             switch self {
             case .mock:
-                "Mock"
+                L10n.tr("common.mode.mock")
             case .client:
-                "Client"
+                L10n.tr("common.mode.client")
             }
         }
     }
@@ -30,11 +30,11 @@ final class AlertsScreenModel {
         var title: String {
             switch self {
             case .configured:
-                "已配置"
+                L10n.tr("alerts.scenario.configured")
             case .empty:
-                "空态"
+                L10n.tr("common.scenario.empty")
             case .failure:
-                "失败"
+                L10n.tr("common.scenario.failure")
             }
         }
     }
@@ -98,18 +98,18 @@ final class AlertsScreenModel {
         } catch let error as AlertsScreenModelError {
             contentState = .failure(
                 title: error.title,
-                detail: error.errorDescription ?? "提醒页面加载失败。",
+                detail: error.errorDescription ?? L10n.tr("alerts.error.load_failed"),
                 retryable: error.isRetryable
             )
         } catch let error as APIClientError {
             contentState = .failure(
-                title: "Client 模式暂不可用",
-                detail: error.errorDescription ?? "提醒接口请求失败。",
+                title: L10n.tr("common.client_unavailable"),
+                detail: error.errorDescription ?? L10n.tr("alerts.error.client_request_failed"),
                 retryable: true
             )
         } catch {
             contentState = .failure(
-                title: "提醒页面加载失败",
+                title: L10n.tr("alerts.error.screen_failed"),
                 detail: error.localizedDescription,
                 retryable: true
             )
@@ -134,13 +134,13 @@ final class AlertsScreenModel {
             return .success(.demo)
         case .empty:
             return .empty(
-                title: "当前还没有提醒配置",
-                detail: "这是 Mock 空态，用于验证用户尚未选择关注城市或还未开启提醒时的展示。"
+                title: L10n.tr("alerts.empty.title"),
+                detail: L10n.tr("alerts.empty.detail")
             )
         case .failure:
             return .failure(
-                title: "提醒配置读取失败",
-                detail: "这是 Mock 失败态，用于验证重试、错误提示与降级展示。",
+                title: L10n.tr("alerts.mock_failure.title"),
+                detail: L10n.tr("alerts.mock_failure.detail"),
                 retryable: true
             )
         }
@@ -159,7 +159,7 @@ final class AlertsScreenModel {
         )
     }
 
-    private static let defaultLocationName = "上海"
+    private static let defaultLocationName = L10n.tr("common.default_city")
 
     private static let defaultRequest = AlertSubscriptionRequest(
         userID: UUID(uuidString: "66a5660a-5233-4dc5-9f4e-e4df7c610001"),
@@ -170,8 +170,8 @@ final class AlertsScreenModel {
     )
 
     private static let clientHistory: [AlertHistoryItem] = [
-        AlertHistoryItem(id: UUID(), date: "2026-03-06T07:00:00Z", riskLevel: .high, title: "Client 回放：草类花粉升至 4 级"),
-        AlertHistoryItem(id: UUID(), date: "2026-03-05T07:00:00Z", riskLevel: .moderate, title: "Client 回放：总体风险达到 3 级")
+        AlertHistoryItem(id: UUID(), date: "2026-03-06T07:00:00Z", riskLevel: .high, title: L10n.tr("alerts.history.client.1")),
+        AlertHistoryItem(id: UUID(), date: "2026-03-05T07:00:00Z", riskLevel: .moderate, title: L10n.tr("alerts.history.client.2"))
     ]
 }
 
@@ -181,7 +181,7 @@ private enum AlertsScreenModelError: LocalizedError {
     var title: String {
         switch self {
         case .missingBaseURL:
-            "Client 模式未配置"
+            L10n.tr("common.client_not_configured")
         }
     }
 
@@ -195,7 +195,7 @@ private enum AlertsScreenModelError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingBaseURL:
-            "缺少 ARAPP_EDGE_BASE_URL，当前无法真正发起提醒页面请求。"
+            L10n.tr("alerts.error.missing_base_url")
         }
     }
 }

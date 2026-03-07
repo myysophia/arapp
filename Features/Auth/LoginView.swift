@@ -11,10 +11,10 @@ struct LoginView: View {
 
                 if let errorMessage = authFlow.errorMessage {
                     loginStatusCard(
-                        title: "认证流程失败",
+                        title: L10n.tr("auth.error.title"),
                         detail: errorMessage,
                         systemImage: "exclamationmark.triangle",
-                        actionTitle: "清除错误"
+                        actionTitle: L10n.tr("common.clear")
                     ) {
                         authFlow.dismissError()
                     }
@@ -33,11 +33,11 @@ struct LoginView: View {
             .padding(.vertical, AppSpacing.xl)
         }
         .background(AppColor.background.ignoresSafeArea())
-        .navigationTitle("登录")
+        .navigationTitle(L10n.tr("auth.screen.title"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button("关闭") {
+                Button(L10n.tr("common.close")) {
                     appState.route = nil
                 }
             }
@@ -60,19 +60,19 @@ struct LoginView: View {
             }
 
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                Text(authFlow.isAnonymous ? "登录后同步你的提醒设置" : "认证假流程已完成")
+                Text(authFlow.isAnonymous ? L10n.tr("auth.header.title.anonymous") : L10n.tr("auth.header.title.signed_in"))
                     .font(AppTypography.titleHero)
                     .foregroundStyle(AppColor.textPrimary)
 
-                Text(authFlow.isAnonymous ? "基础花粉风险查看无需登录。登录仅用于同步提醒、语言和后续多设备配置。" : "当前使用 MockAuthService 模拟登录成功，会在返回“我的”页面后直接反映为已登录状态。")
+                Text(authFlow.isAnonymous ? L10n.tr("auth.header.body.anonymous") : L10n.tr("auth.header.body.signed_in"))
                     .font(AppTypography.body)
                     .foregroundStyle(AppColor.textSecondary)
             }
 
             HStack(spacing: AppSpacing.xs) {
-                benefitChip(title: "同步提醒")
-                benefitChip(title: "保留偏好")
-                benefitChip(title: authFlow.isSigningIn ? "登录中" : (authFlow.isAnonymous ? "可选登录" : "已连接"))
+                benefitChip(title: L10n.tr("auth.benefit.sync_alerts"))
+                benefitChip(title: L10n.tr("auth.benefit.keep_preferences"))
+                benefitChip(title: authFlow.isSigningIn ? L10n.tr("auth.benefit.signing_in") : (authFlow.isAnonymous ? L10n.tr("auth.benefit.optional") : L10n.tr("auth.status.connected")))
             }
         }
         .padding(AppSpacing.lg)
@@ -89,7 +89,7 @@ struct LoginView: View {
 
     private var providerSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            Text("继续方式")
+            Text(L10n.tr("auth.provider.section_title"))
                 .font(AppTypography.titleCard)
                 .foregroundStyle(AppColor.textPrimary)
 
@@ -107,9 +107,9 @@ struct LoginView: View {
             } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("先匿名继续")
+                        Text(L10n.tr("auth.anonymous.title"))
                             .font(AppTypography.bodyStrong)
-                        Text("稍后仍可从“我的”页面绑定账号")
+                        Text(L10n.tr("auth.anonymous.subtitle"))
                             .font(AppTypography.caption)
                             .foregroundStyle(AppColor.textSecondary)
                     }
@@ -128,7 +128,7 @@ struct LoginView: View {
             .buttonStyle(.plain)
             .disabled(authFlow.isSigningIn)
 
-            Text("当前阶段仅提供静态流程展示，真实认证会在后续接入 Supabase Auth。")
+            Text(L10n.tr("auth.anonymous.footnote"))
                 .font(AppTypography.caption)
                 .foregroundStyle(AppColor.textSecondary)
         }
@@ -136,10 +136,10 @@ struct LoginView: View {
 
     private var signedInSection: some View {
         loginStatusCard(
-            title: "已完成假登录",
-            detail: "当前会话已写入共享的 AuthFlowModel。返回“我的”页面后，你会看到已登录状态和已绑定 provider。",
+            title: L10n.tr("auth.success.title"),
+            detail: L10n.tr("auth.success.detail"),
             systemImage: "person.crop.circle.badge.checkmark",
-            actionTitle: "返回我的页面"
+            actionTitle: L10n.tr("auth.success.action")
         ) {
             appState.selectedTab = .profile
             appState.route = nil
@@ -148,25 +148,25 @@ struct LoginView: View {
 
     private var trustSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            Text("你将看到什么")
+            Text(L10n.tr("auth.trust.section_title"))
                 .font(AppTypography.titleCard)
                 .foregroundStyle(AppColor.textPrimary)
 
             VStack(spacing: AppSpacing.sm) {
                 trustRow(
                     icon: "bell.badge",
-                    title: "提醒同步",
-                    subtitle: "让风险阈值和静默时段跟账号走。"
+                    title: L10n.tr("auth.trust.sync_alerts.title"),
+                    subtitle: L10n.tr("auth.trust.sync_alerts.subtitle")
                 )
                 trustRow(
                     icon: "lock.shield",
-                    title: "非强制登录",
-                    subtitle: "风险浏览、地图和基础提醒能力默认可匿名使用。"
+                    title: L10n.tr("auth.trust.optional.title"),
+                    subtitle: L10n.tr("auth.trust.optional.subtitle")
                 )
                 trustRow(
                     icon: "info.circle",
-                    title: "数据说明",
-                    subtitle: "登录不会改变数据来源与非医疗建议的展示规则。"
+                    title: L10n.tr("auth.trust.data_notice.title"),
+                    subtitle: L10n.tr("auth.trust.data_notice.subtitle")
                 )
             }
         }

@@ -8,8 +8,8 @@ struct ProfileView: View {
         ProfileScreenState(
             auth: authFlow.authMe,
             displayName: authFlow.displayName,
-            defaultCity: "上海",
-            versionLabel: "Phase 1 Preview"
+            defaultCity: L10n.tr("common.default_city"),
+            versionLabel: L10n.tr("profile.version_label")
         )
     }
 
@@ -20,7 +20,7 @@ struct ProfileView: View {
 
                 if let errorMessage = authFlow.errorMessage {
                     AuthFlowNoticeCard(
-                        title: "认证流程失败",
+                        title: L10n.tr("auth.error.title"),
                         detail: errorMessage,
                         systemImage: "exclamationmark.triangle"
                     ) {
@@ -39,6 +39,10 @@ struct ProfileView: View {
                 }
 
                 PreferenceSection(state: state)
+                LocaleOverrideCard(
+                    localeIdentifier: appState.localeIdentifier,
+                    onToggle: { appState.toggleLocale() }
+                )
                 PrivacySection(isAnonymous: state.isAnonymous)
                 AboutSection(versionLabel: state.versionLabel)
                 DangerZone(isAnonymous: state.isAnonymous) {
@@ -90,7 +94,7 @@ private struct ProfileHeader: View {
             }
 
             if state.isAnonymous {
-                Text("基础功能无需登录")
+                Text(L10n.tr("profile.auth_not_required"))
                     .font(AppTypography.captionStrong)
                     .foregroundStyle(AppColor.brandDeep)
                     .padding(.horizontal, AppSpacing.sm)
@@ -127,7 +131,7 @@ private struct AuthFlowNoticeCard: View {
                 }
             }
 
-            Button("清除提示") {
+            Button(L10n.tr("common.clear")) {
                 onDismiss()
             }
             .buttonStyle(.plain)
@@ -176,7 +180,7 @@ private struct AccountStatusCard: View {
             HStack(spacing: AppSpacing.sm) {
                 ProfileBadge(systemImage: "globe.asia.australia", text: state.localeLabel)
                 ProfileBadge(systemImage: "scalemass", text: state.unitLabel)
-                ProfileBadge(systemImage: "bell.badge", text: state.isAnonymous ? "本地保存" : "可同步")
+                ProfileBadge(systemImage: "bell.badge", text: state.isAnonymous ? L10n.tr("profile.badge.local_only") : L10n.tr("profile.badge.sync_enabled"))
             }
         }
         .padding(AppSpacing.lg)
@@ -212,11 +216,11 @@ private struct AuthButtonGroup: View {
     let onTapProvider: () -> Void
 
     var body: some View {
-        ProfileCardContainer(title: "继续方式", subtitle: "登录仅用于同步提醒、语言和后续多设备配置。") {
+        ProfileCardContainer(title: L10n.tr("profile.auth_options.title"), subtitle: L10n.tr("profile.auth_options.subtitle")) {
             VStack(spacing: AppSpacing.sm) {
                 AuthProviderButton(
-                    title: "使用 Google 继续",
-                    subtitle: "适合快速同步提醒设置",
+                    title: L10n.format("profile.auth_options.google.title", "Google"),
+                    subtitle: L10n.tr("profile.auth_options.google.subtitle"),
                     icon: "globe",
                     backgroundColor: AppColor.surface,
                     foregroundColor: AppColor.textPrimary,
@@ -224,8 +228,8 @@ private struct AuthButtonGroup: View {
                     onTap: onTapProvider
                 )
                 AuthProviderButton(
-                    title: "使用 GitHub 继续",
-                    subtitle: "适合保持开发者账号一致",
+                    title: L10n.format("profile.auth_options.github.title", "GitHub"),
+                    subtitle: L10n.tr("profile.auth_options.github.subtitle"),
                     icon: "chevron.left.forwardslash.chevron.right",
                     backgroundColor: AppColor.textPrimary,
                     foregroundColor: .white,
@@ -233,8 +237,8 @@ private struct AuthButtonGroup: View {
                     onTap: onTapProvider
                 )
                 AuthProviderButton(
-                    title: "使用 Apple 继续",
-                    subtitle: "保持 iOS 原生登录习惯",
+                    title: L10n.format("profile.auth_options.apple.title", "Apple"),
+                    subtitle: L10n.tr("profile.auth_options.apple.subtitle"),
                     icon: "apple.logo",
                     backgroundColor: .black,
                     foregroundColor: .white,
@@ -290,7 +294,7 @@ private struct ProviderBindingCard: View {
     let providers: [AuthProvider]
 
     var body: some View {
-        ProfileCardContainer(title: "已绑定账号", subtitle: "登录成功后当前页面内刷新，不跳转新页。") {
+        ProfileCardContainer(title: L10n.tr("profile.providers.title"), subtitle: L10n.tr("profile.providers.subtitle")) {
             VStack(spacing: AppSpacing.sm) {
                 ForEach(providers, id: \.rawValue) { provider in
                     HStack {
@@ -300,7 +304,7 @@ private struct ProviderBindingCard: View {
 
                         Spacer()
 
-                        Text("已连接")
+                        Text(L10n.tr("common.connected"))
                             .font(AppTypography.captionStrong)
                             .foregroundStyle(AppColor.brandDeep)
                             .padding(.horizontal, AppSpacing.sm)
@@ -319,12 +323,47 @@ private struct PreferenceSection: View {
     let state: ProfileScreenState
 
     var body: some View {
-        ProfileCardContainer(title: "偏好设置", subtitle: "修改后即时更新界面，并在后续接入服务端同步。") {
+        ProfileCardContainer(title: L10n.tr("profile.preferences.title"), subtitle: L10n.tr("profile.preferences.subtitle")) {
             VStack(spacing: AppSpacing.sm) {
-                PreferenceRow(title: "语言", value: state.localeLabel, systemImage: "character.book.closed")
-                PreferenceRow(title: "单位", value: state.unitLabel, systemImage: "scalemass")
-                PreferenceRow(title: "默认城市", value: state.defaultCity, systemImage: "location")
+                PreferenceRow(title: L10n.tr("profile.preferences.language"), value: state.localeLabel, systemImage: "character.book.closed")
+                PreferenceRow(title: L10n.tr("profile.preferences.unit"), value: state.unitLabel, systemImage: "scalemass")
+                PreferenceRow(title: L10n.tr("profile.preferences.default_city"), value: state.defaultCity, systemImage: "location")
             }
+        }
+    }
+}
+
+private struct LocaleOverrideCard: View {
+    let localeIdentifier: String
+    let onToggle: () -> Void
+
+    var body: some View {
+        ProfileCardContainer(
+            title: L10n.tr("profile.locale.title"),
+            subtitle: L10n.tr("profile.locale.subtitle")
+        ) {
+            Button(action: onToggle) {
+                HStack {
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        Text(localeIdentifier == "zh-Hans" ? L10n.tr("locale.zh_hans") : L10n.tr("locale.en"))
+                            .font(AppTypography.bodyStrong)
+                            .foregroundStyle(AppColor.textPrimary)
+
+                        Text(L10n.tr("profile.locale.action_hint"))
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColor.textSecondary)
+                    }
+
+                    Spacer()
+
+                    Text(L10n.tr("profile.locale.toggle_action"))
+                        .font(AppTypography.captionStrong)
+                        .foregroundStyle(AppColor.brandDeep)
+                }
+                .padding(AppSpacing.md)
+                .background(AppColor.surfaceMuted, in: RoundedRectangle(cornerRadius: AppRadius.md))
+            }
+            .buttonStyle(.plain)
         }
     }
 }
@@ -363,11 +402,11 @@ private struct PrivacySection: View {
     let isAnonymous: Bool
 
     var body: some View {
-        ProfileCardContainer(title: "隐私与数据", subtitle: "权限、隐私政策、数据删除都从这里直达。") {
+        ProfileCardContainer(title: L10n.tr("profile.privacy.title"), subtitle: L10n.tr("profile.privacy.subtitle")) {
             VStack(spacing: AppSpacing.sm) {
-                PrivacyRow(title: "通知权限", detail: "\(isAnonymous ? "未同步" : "已关联账户") / 可跳转系统设置")
-                PrivacyRow(title: "隐私政策", detail: "查看数据用途、保留周期和删除方式")
-                PrivacyRow(title: "删除提醒数据", detail: "危险操作，必须二次确认")
+                PrivacyRow(title: L10n.tr("profile.privacy.notifications.title"), detail: isAnonymous ? L10n.tr("profile.privacy.notifications.detail.anonymous") : L10n.tr("profile.privacy.notifications.detail.signed_in"))
+                PrivacyRow(title: L10n.tr("profile.privacy.policy.title"), detail: L10n.tr("profile.privacy.policy.detail"))
+                PrivacyRow(title: L10n.tr("profile.privacy.delete.title"), detail: L10n.tr("profile.privacy.delete.detail"))
             }
         }
     }
@@ -398,11 +437,11 @@ private struct AboutSection: View {
     let versionLabel: String
 
     var body: some View {
-        ProfileCardContainer(title: "关于与来源", subtitle: "来源透明和非医疗建议在这里统一呈现。") {
+        ProfileCardContainer(title: L10n.tr("profile.about.title"), subtitle: L10n.tr("profile.about.subtitle")) {
             VStack(spacing: AppSpacing.sm) {
-                AboutRow(title: "数据来源", detail: "模型点 + 来源透明说明")
-                AboutRow(title: "免责说明", detail: "仅提供风险参考，不构成医疗诊断")
-                AboutRow(title: "版本号", detail: versionLabel)
+                AboutRow(title: L10n.tr("profile.about.sources.title"), detail: L10n.tr("profile.about.sources.detail"))
+                AboutRow(title: L10n.tr("profile.about.disclaimer.title"), detail: L10n.tr("profile.about.disclaimer.detail"))
+                AboutRow(title: L10n.tr("profile.about.version.title"), detail: versionLabel)
             }
         }
     }
@@ -435,10 +474,10 @@ private struct DangerZone: View {
     let onLogout: () -> Void
 
     var body: some View {
-        ProfileCardContainer(title: "危险操作区", subtitle: "危险操作必须和普通按钮显著区分。") {
+        ProfileCardContainer(title: L10n.tr("profile.danger.title"), subtitle: L10n.tr("profile.danger.subtitle")) {
             VStack(spacing: AppSpacing.sm) {
                 Button(action: {}) {
-                    Text("删除提醒数据")
+                    Text(L10n.tr("profile.danger.delete"))
                         .font(AppTypography.bodyStrong)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, AppSpacing.sm)
@@ -452,7 +491,7 @@ private struct DangerZone: View {
 
                 if !isAnonymous {
                     Button(action: onLogout) {
-                        Text("退出登录")
+                        Text(L10n.tr("profile.danger.sign_out"))
                             .font(AppTypography.bodyStrong)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, AppSpacing.sm)
@@ -510,23 +549,25 @@ private struct ProfileScreenState {
     }
 
     var localeLabel: String {
-        auth.locale == "zh-Hans" ? "简体中文" : "English"
+        auth.locale == "zh-Hans" ? L10n.tr("locale.zh_hans") : L10n.tr("locale.en")
     }
 
     var unitLabel: String {
-        auth.unitSystem == .imperial ? "Imperial" : "Metric"
+        auth.unitSystem == .imperial ? L10n.tr("unit.imperial") : L10n.tr("unit.metric")
     }
 
     var headerTitle: String {
-        isAnonymous ? "管理你的偏好和账户状态" : "账户与偏好已同步"
+        isAnonymous ? L10n.tr("profile.header.title.anonymous") : L10n.tr("profile.header.title.signed_in")
     }
 
     var headerSubtitle: String {
-        isAnonymous ? "你可以先匿名使用核心功能，再决定是否登录同步提醒。" : "当前页面集中管理语言、单位、隐私和数据来源说明。"
+        isAnonymous ? L10n.tr("profile.header.subtitle.anonymous") : L10n.tr("profile.header.subtitle.signed_in")
     }
 
     var accountSubtitle: String {
-        isAnonymous ? "登录后可同步提醒设置与偏好，但基础功能无需登录。" : "已连接 \(providers.map(\.displayName).joined(separator: " / "))，偏好将跟随当前账户。"
+        isAnonymous
+            ? L10n.tr("profile.account.subtitle.anonymous")
+            : L10n.format("profile.account.subtitle.signed_in", providers.map(\.displayName).joined(separator: " / "))
     }
 }
 

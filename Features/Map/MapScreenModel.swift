@@ -14,9 +14,9 @@ final class MapScreenModel {
         var title: String {
             switch self {
             case .mock:
-                "Mock"
+                L10n.tr("common.mode.mock")
             case .client:
-                "Client"
+                L10n.tr("common.mode.client")
             }
         }
     }
@@ -30,9 +30,9 @@ final class MapScreenModel {
         var title: String {
             switch self {
             case .success:
-                "成功"
+                L10n.tr("common.scenario.success")
             case .failure:
-                "失败"
+                L10n.tr("common.scenario.failure")
             }
         }
     }
@@ -98,18 +98,18 @@ final class MapScreenModel {
         } catch let error as MapScreenModelError {
             contentState = .failure(
                 title: error.title,
-                detail: error.errorDescription ?? "地图数据加载失败。",
+                detail: error.errorDescription ?? L10n.tr("map.error.load_failed"),
                 retryable: error.isRetryable
             )
         } catch let error as APIClientError {
             contentState = .failure(
-                title: "Client 模式暂不可用",
-                detail: error.errorDescription ?? "地图接口请求失败。",
+                title: L10n.tr("common.client_unavailable"),
+                detail: error.errorDescription ?? L10n.tr("map.error.client_request_failed"),
                 retryable: true
             )
         } catch {
             contentState = .failure(
-                title: "地图数据加载失败",
+                title: L10n.tr("map.error.screen_failed"),
                 detail: error.localizedDescription,
                 retryable: true
             )
@@ -136,15 +136,15 @@ final class MapScreenModel {
             return .success(state)
         case .failure:
             return .failure(
-                title: "地图数据暂时不可用",
-                detail: "这是 Mock 失败态，用于验证热力层失败说明卡和重试路径。",
+                title: L10n.tr("map.mock_failure.title"),
+                detail: L10n.tr("map.mock_failure.detail"),
                 retryable: true
             )
         }
     }
 
     private func makeClientState(using client: any PollenAPIClienting) async throws -> ContentState {
-        async let suggestionsEnvelope = client.fetchLocationSuggestions(query: "上海", lang: Self.language)
+        async let suggestionsEnvelope = client.fetchLocationSuggestions(query: L10n.tr("common.default_city"), lang: Self.language)
         async let summaryEnvelope = client.fetchSummary(Self.summaryQuery)
         async let sourceMetaEnvelope = client.fetchSourceMeta(lang: Self.language)
 
@@ -156,7 +156,7 @@ final class MapScreenModel {
         let source = sourceMeta.first(where: \.active) ?? sourceMeta.first ?? .placeholder(for: summary.source)
         let mapPoints = Self.makeClientPoints(from: summary)
         let state = MapScreenState(
-            searchPlaceholder: "搜索城市或区域",
+            searchPlaceholder: L10n.tr("map.search.placeholder"),
             selectedLocation: selectedLocation,
             source: source,
             mapPoints: mapPoints,
@@ -166,7 +166,7 @@ final class MapScreenModel {
         return .success(state)
     }
 
-    private static let language = "zh-Hans"
+    private static let language = L10n.apiLanguageIdentifier
 
     private static let summaryQuery = SummaryQuery(
         lat: 31.2304,
@@ -177,32 +177,32 @@ final class MapScreenModel {
 
     private static let defaultLocation = LocationSuggestion(
         id: UUID(uuidString: "6f222b19-b7c9-4baa-8661-2dd6905ddf00") ?? UUID(),
-        name: "上海",
+        name: L10n.tr("common.default_city"),
         countryCode: "CN",
-        admin1: "上海市",
+        admin1: L10n.tr("common.default_city_admin"),
         lat: 31.2304,
         lng: 121.4737
     )
 
     private static let demoState = MapScreenState(
-        searchPlaceholder: "搜索城市或区域",
+        searchPlaceholder: L10n.tr("map.search.placeholder"),
         selectedLocation: defaultLocation,
         source: SourceMeta(
             id: UUID(uuidString: "8d11c444-0dd7-492d-a185-774bcc66a6f7") ?? UUID(),
-            providerName: "Primary Model Provider",
+            providerName: L10n.tr("map.demo.provider"),
             source: .model,
-            coverageNote: "中国大陆主要城市模型覆盖",
-            licenseNote: "仅用于风险参考，不代表采样监测",
+            coverageNote: L10n.tr("map.demo.coverage"),
+            licenseNote: L10n.tr("map.demo.license"),
             active: true,
             updatedAt: ISO8601DateFormatter().date(from: "2026-03-06T08:10:00Z") ?? .now
         ),
         mapPoints: [
             MapPointState(
                 id: UUID(uuidString: "42106b0a-6200-44b0-9fbe-f0a4cce30001") ?? UUID(),
-                locationName: "浦东新区",
+                locationName: L10n.tr("map.demo.location.pudong"),
                 summary: PollenSummary(
                     id: "map-summary-pudong",
-                    cityName: "浦东新区",
+                    cityName: L10n.tr("map.demo.location.pudong"),
                     locationID: UUID(uuidString: "42106b0a-6200-44b0-9fbe-f0a4cce30001"),
                     riskOverall: .veryHigh,
                     treeLevel: .moderate,
@@ -217,10 +217,10 @@ final class MapScreenModel {
             ),
             MapPointState(
                 id: UUID(uuidString: "42106b0a-6200-44b0-9fbe-f0a4cce30002") ?? UUID(),
-                locationName: "静安区",
+                locationName: L10n.tr("map.demo.location.jingan"),
                 summary: PollenSummary(
                     id: "map-summary-jingan",
-                    cityName: "静安区",
+                    cityName: L10n.tr("map.demo.location.jingan"),
                     locationID: UUID(uuidString: "42106b0a-6200-44b0-9fbe-f0a4cce30002"),
                     riskOverall: .high,
                     treeLevel: .low,
@@ -235,10 +235,10 @@ final class MapScreenModel {
             ),
             MapPointState(
                 id: UUID(uuidString: "42106b0a-6200-44b0-9fbe-f0a4cce30003") ?? UUID(),
-                locationName: "徐汇区",
+                locationName: L10n.tr("map.demo.location.xuhui"),
                 summary: PollenSummary(
                     id: "map-summary-xuhui",
-                    cityName: "徐汇区",
+                    cityName: L10n.tr("map.demo.location.xuhui"),
                     locationID: UUID(uuidString: "42106b0a-6200-44b0-9fbe-f0a4cce30003"),
                     riskOverall: .moderate,
                     treeLevel: .low,
@@ -253,9 +253,9 @@ final class MapScreenModel {
             )
         ],
         searchItems: [
-            SearchSheetItem(id: "shanghai", title: "上海", subtitle: "中国 · 上海市", badge: "当前"),
-            SearchSheetItem(id: "hangzhou", title: "杭州", subtitle: "中国 · 浙江省", badge: "可切换"),
-            SearchSheetItem(id: "suzhou", title: "苏州", subtitle: "中国 · 江苏省", badge: "可切换")
+            SearchSheetItem(id: "shanghai", title: L10n.tr("common.default_city"), subtitle: L10n.tr("map.search.item.shanghai"), badge: L10n.tr("map.search.badge.current")),
+            SearchSheetItem(id: "hangzhou", title: L10n.tr("map.search.city.hangzhou"), subtitle: L10n.tr("map.search.item.hangzhou"), badge: L10n.tr("map.search.badge.switchable")),
+            SearchSheetItem(id: "suzhou", title: L10n.tr("map.search.city.suzhou"), subtitle: L10n.tr("map.search.item.suzhou"), badge: L10n.tr("map.search.badge.switchable"))
         ]
     )
 
@@ -269,10 +269,10 @@ final class MapScreenModel {
             ),
             MapPointState(
                 id: UUID(),
-                locationName: "相邻区域 A",
+                locationName: L10n.tr("map.client.neighbor_a"),
                 summary: PollenSummary(
                     id: summary.id + "-a",
-                    cityName: "相邻区域 A",
+                    cityName: L10n.tr("map.client.neighbor_a"),
                     locationID: UUID(),
                     riskOverall: summary.riskOverall == .veryHigh ? .high : summary.riskOverall,
                     treeLevel: summary.treeLevel,
@@ -287,10 +287,10 @@ final class MapScreenModel {
             ),
             MapPointState(
                 id: UUID(),
-                locationName: "相邻区域 B",
+                locationName: L10n.tr("map.client.neighbor_b"),
                 summary: PollenSummary(
                     id: summary.id + "-b",
-                    cityName: "相邻区域 B",
+                    cityName: L10n.tr("map.client.neighbor_b"),
                     locationID: UUID(),
                     riskOverall: summary.riskOverall == .none ? .low : .moderate,
                     treeLevel: summary.treeLevel,
@@ -312,7 +312,7 @@ final class MapScreenModel {
                 id: suggestion.id.uuidString,
                 title: suggestion.name,
                 subtitle: [suggestion.countryCode, suggestion.admin1].compactMap { $0 }.joined(separator: " · "),
-                badge: suggestion.name == defaultLocation.name ? "当前" : "建议"
+                badge: suggestion.name == defaultLocation.name ? L10n.tr("map.search.badge.current") : L10n.tr("map.search.badge.recommended")
             )
         }
 
@@ -326,7 +326,7 @@ private enum MapScreenModelError: LocalizedError {
     var title: String {
         switch self {
         case .missingBaseURL:
-            "Client 模式未配置"
+            L10n.tr("common.client_not_configured")
         }
     }
 
@@ -340,7 +340,7 @@ private enum MapScreenModelError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingBaseURL:
-            "缺少 ARAPP_EDGE_BASE_URL，当前无法真正发起地图页请求。"
+            L10n.tr("map.error.missing_base_url")
         }
     }
 }
@@ -369,91 +369,22 @@ extension MapScreenState {
     }
 }
 
-extension SourceMeta {
-    static func placeholder(for source: PollenSourceType) -> SourceMeta {
-        SourceMeta(
-            id: UUID(),
-            providerName: "未配置来源说明",
-            source: source,
-            coverageNote: "当前演示路径未返回来源说明，页面使用占位信息保证弹层和抽屉文案完整。",
-            licenseNote: "风险参考，非医疗建议。",
-            active: true,
-            updatedAt: .now
-        )
-    }
-}
-
 extension PollenSummary {
     var mapRiskTitle: String {
         switch riskOverall {
         case .none:
-            "风险很低"
+            L10n.tr("map.risk.none")
         case .veryLow, .low:
-            "低风险"
+            L10n.tr("map.risk.low")
         case .moderate:
-            "中等风险"
+            L10n.tr("map.risk.moderate")
         case .high:
-            "高风险"
+            L10n.tr("map.risk.high")
         case .veryHigh:
-            "极高风险"
+            L10n.tr("map.risk.very_high")
         }
     }
 
     var mapRiskBadgeColor: Color { RiskPalette.color(for: riskOverall.uiLevel) }
     var mapRiskBadgeForeground: Color { RiskPalette.labelColor(for: riskOverall.uiLevel) }
-
-    var updatedAtText: String {
-        "更新于 \(updatedAt.relativeText)"
-    }
-
-    var sourceTag: String {
-        source.displayText
-    }
-}
-
-extension PollenRiskLevel {
-    var uiLevel: AppRiskLevel {
-        AppRiskLevel(rawValue: rawValue) ?? .none
-    }
-}
-
-extension AppRiskLevel {
-    var displayText: String {
-        switch self {
-        case .none:
-            "极低"
-        case .veryLow:
-            "很低"
-        case .low:
-            "较低"
-        case .moderate:
-            "中等"
-        case .high:
-            "较高"
-        case .veryHigh:
-            "极高"
-        }
-    }
-}
-
-extension PollenSourceType {
-    var displayText: String {
-        switch self {
-        case .model:
-            "模型点"
-        case .station:
-            "监测站"
-        case .vendor:
-            "合作源"
-        }
-    }
-}
-
-extension Date {
-    var relativeText: String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.locale = Locale(identifier: "zh_Hans")
-        formatter.unitsStyle = .short
-        return formatter.localizedString(for: self, relativeTo: .now)
-    }
 }

@@ -33,6 +33,7 @@ targets:
       - path: Services
         excludes:
           - README.md
+      - path: Resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.myysophia.arapp

@@ -79,7 +79,7 @@ struct SourceSheetView: View {
 
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("来源透明说明")
+                    Text(L10n.tr("overlay.source.title"))
                         .font(AppTypography.titleCard)
                         .foregroundStyle(AppColor.textPrimary)
 
@@ -100,8 +100,8 @@ struct SourceSheetView: View {
             }
 
             HStack(spacing: AppSpacing.sm) {
-                SourceMetaCard(title: "更新于", value: updatedAt)
-                SourceMetaCard(title: "置信度", value: confidence)
+                SourceMetaCard(title: L10n.tr("overlay.source.updated_at"), value: updatedAt)
+                SourceMetaCard(title: L10n.tr("overlay.source.confidence"), value: confidence)
             }
         }
         .padding(AppSpacing.lg)
@@ -142,7 +142,7 @@ struct DangerDialogView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            Text("Danger action")
+            Text(L10n.tr("overlay.danger.badge"))
                 .font(AppTypography.captionStrong)
                 .foregroundStyle(AppColor.danger)
                 .padding(.horizontal, AppSpacing.sm)
