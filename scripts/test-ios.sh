@@ -64,9 +64,12 @@ fi
 
 scheme="${IOS_SCHEME:-}"
 if [[ -z "$scheme" ]]; then
-  scheme="$(xcodebuild "${list_args[@]}" -list -json | python3 - <<'PY'
-import json, sys
-data = json.load(sys.stdin)
+  list_json="$(xcodebuild "${list_args[@]}" -list -json)"
+  scheme="$(LIST_JSON="$list_json" python3 - <<'PY'
+import json
+import os
+
+data = json.loads(os.environ["LIST_JSON"])
 workspace = data.get("workspace", {})
 project = data.get("project", {})
 schemes = workspace.get("schemes") or project.get("schemes") or []
@@ -82,14 +85,15 @@ fi
 
 destination="${IOS_DESTINATION:-}"
 if [[ -z "$destination" ]]; then
+  simctl_output="$(xcrun simctl list devices available)"
   simulator_name="$(
-    xcrun simctl list devices available | python3 - <<'PY'
+    SIMCTL_OUTPUT="$simctl_output" python3 - <<'PY'
+import os
 import re
-import sys
 
-for raw in sys.stdin:
+for raw in os.environ["SIMCTL_OUTPUT"].splitlines():
     line = raw.strip()
-    match = re.match(r"^(iPhone .*?) \\([A-F0-9-]+\\) \\(Shutdown\\)$", line)
+    match = re.match(r"^(iPhone .*?) \([A-F0-9-]+\) \((Shutdown|Booted)\)$", line)
     if match:
         print(match.group(1))
         break
