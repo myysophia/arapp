@@ -52,3 +52,49 @@
 ## 10. 假设与默认值
 - 测试环境与生产字段完全一致。
 - 自动化覆盖核心路径，手工补充体验与视觉检查。
+
+## 11. 已落地自动化测试基线（2026-03-07）
+### 11.1 当前自动化入口
+- 本地统一入口：`bash scripts/ci-local.sh`
+- iOS 测试入口：`bash scripts/test-ios.sh`
+- 工程生成：`xcodegen generate`
+- 当前每个 worktree 使用独立 `.build/DerivedData`，避免并行测试冲突。
+
+### 11.2 当前单元测试覆盖
+- `AppBootSmokeTests`
+  - 校验底部 Tab 数量为 4。
+- `TodayScreenModelTests`
+  - 覆盖 `mock success`
+  - 覆盖 `mock empty`
+  - 覆盖 `client transport failure`
+- `MapScreenModelTests`
+  - 覆盖 `mock success`
+  - 覆盖 `mock failure`
+  - 覆盖搜索抽屉/来源抽屉开关
+- `AlertsScreenModelTests`
+  - 覆盖 `mock configured`
+  - 覆盖 `mock empty`
+  - 覆盖开关与阈值状态变更
+
+### 11.3 当前 UI 冒烟测试覆盖
+- `AppLaunchSmokeTests`
+  - 启动应用
+  - 跳过 Onboarding
+  - 校验底部 Tab 出现
+  - 顺序切换 `Today / Map / Alerts / Profile`
+  - 测试逻辑兼容中英文按钮文案
+
+## 12. 当前验收快照（2026-03-07）
+- 本地 `ci-local.sh` 已通过。
+- 当前自动化结果：
+  - 单元测试：10/10 通过
+  - UI 测试：1/1 通过
+- 已验证问题：
+  - `DerivedData` 并行冲突已通过脚本隔离修复。
+  - 国际化接入后，关键页面仍可构建并通过烟测。
+
+## 13. 后续补测缺口
+- RLS-001 / RLS-002：依赖 Supabase 真实环境，当前尚未自动化落地。
+- API-001 / API-002：当前主要通过模型与 client 层对齐验证，尚未引入真实 contract fixture。
+- I18N-002：`disclaimer.non_medical` 需要在 UI 层增加显式断言。
+- UI-STATE-001 / UI-STATE-002：当前已在页面状态机实现，但还缺端到端 UI 级自动化。
