@@ -314,3 +314,36 @@
 - 提醒页单页规格：`ui/02c-alerts-screen-spec.md`
 - 我的页单页规格：`ui/02d-profile-screen-spec.md`
 - 后续建议补充：Onboarding 分页规格。
+
+## 22. 已实现对齐快照（2026-03-07）
+### 22.1 已落地页面
+- `TodayView`：已实现 `loading / success / empty / failure` 四态，以及 `Mock / Client` 双模式切换。
+- `MapView`：已实现地图主屏、搜索抽屉、来源抽屉、底部点位详情与 `Mock / Client` 双模式。
+- `AlertsView`：已实现已配置态、空态、失败态、阈值修改、静默时段展示与匿名同步提示。
+- `ProfileView`：已实现匿名态、已登录态、语言切换、单位切换、隐私与数据入口。
+- `LoginView` 与 `OnboardingFlowView`：已完成静态流与路由接入。
+
+### 22.2 已落地共享组件
+- `RiskHeroCard`
+- `TrendMiniChart`
+- `AuthProviderButton`
+- `StateView`
+- `OverlayComponents`
+
+### 22.3 与 Figma 的当前对齐方式
+- `03 Main Screens / Home Today` 对应 `TodayView`
+- `03 Main Screens / Map Coverage` 对应 `MapView`
+- `03 Main Screens / Alerts Threshold` 对应 `AlertsView`
+- `03 Main Screens / Profile Account` 对应 `ProfileView`
+- `03 Main Screens / Auth Login` 对应 `LoginView`
+- `03 Main Screens / Onboarding Flow` 对应 `OnboardingFlowView`
+
+### 22.4 已落地国际化规则
+- 运行时语言切换由 `AppState.localeIdentifier` + `L10n.setLocaleIdentifier(_:)` 驱动。
+- 当前字符串资源已覆盖 `zh-Hans` 与 `en`。
+- 日期、相对时间、百分比与月日格式统一走 `AppFormatters`。
+- API 请求语言参数统一使用 `L10n.apiLanguageIdentifier`。
+
+### 22.5 当前偏差与后续收口点
+- `PollenBreakdownBar` 与 `SourceTransparencyCard` 仍主要以内嵌页面结构存在，后续如继续抽组件，应保持命名与本规范一致。
+- UI 测试当前通过文本驱动导航，后续若要提高稳定性，应补充无歧义的可访问性标识。
