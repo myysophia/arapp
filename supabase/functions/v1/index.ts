@@ -49,7 +49,7 @@ function methodNotAllowed(requestID: string): Response {
 function extractBearerToken(authHeader: string | null): string | null {
   if (!authHeader) return null
   const normalized = authHeader.trim()
-  if (!normalized.toLowerCase().startsWith("bearer ")) return null
+  if (!normalized.toLowerCase().startsWith("bearer ")) return normalized.length > 0 ? normalized : null
   const authValue = normalized.slice(7).trim()
   return authValue.length > 0 ? authValue : null
 }
@@ -102,6 +102,14 @@ Deno.serve(async (req) => {
     }
   }
 
+  const userTokenFromHeader = extractBearerToken(req.headers.get("x-arapp-user-jwt"))
+  const userTokenFromBody =
+    typeof payload.access_token === "string" ? extractBearerToken(payload.access_token) : null
+  const userToken = userTokenFromHeader ?? userTokenFromBody
+  if (!userToken) {
+    return unauthorized(requestID)
+  }
+
   return response(200, {
     request_id: requestID,
     code: 200,
@@ -110,7 +118,8 @@ Deno.serve(async (req) => {
     data: {
       exchanged: true,
       received_keys: Object.keys(payload),
-      auth_preview: `${bearer.slice(0, 8)}...`,
+      gateway_auth_preview: `${bearer.slice(0, 8)}...`,
+      user_auth_preview: `${userToken.slice(0, 8)}...`,
     },
   })
 })

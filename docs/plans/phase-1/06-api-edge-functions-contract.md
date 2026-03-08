@@ -9,7 +9,8 @@
 - 非范围：后台管理接口、B2B 接口、批处理运维接口。
 
 ## 3. 输入/输出与接口
-- 公共请求头：`Authorization: Bearer <access_token>`（匿名接口可无 token）。
+- 公共请求头：`Authorization: Bearer <gateway_jwt>`（可使用项目 `anon`/`service_role` JWT，匿名接口可无 token）。
+- `POST /v1/auth/exchange` 额外要求：`X-ArApp-User-JWT: <supabase_user_access_token>`（用于业务会话交换）。
 - 公共响应字段：`request_id`、`code`、`message`、`retryable`。
 - 错误码：`400/401/403/404/409/429/500/503`。
 

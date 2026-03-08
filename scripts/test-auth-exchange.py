@@ -139,6 +139,39 @@ def parse_body_json(raw: str | None) -> dict[str, Any]:
     return payload
 
 
+def assert_invalid_jwt_rejected(
+    *,
+    method: str,
+    url: str,
+    timeout: int,
+    body: dict[str, Any],
+    user_access_token: str,
+) -> None:
+    invalid_headers = {
+        "Authorization": "Bearer invalid.jwt.token.for.regression",
+        "X-ArApp-User-JWT": user_access_token,
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-ArApp-Client": "ci-auth-exchange-invalid-jwt",
+    }
+    status, _payload, text = request_json(
+        method=method,
+        url=url,
+        headers=invalid_headers,
+        body=body,
+        timeout=timeout,
+    )
+    if 200 <= status < 300:
+        raise AuthExchangeCheckError(
+            "无效 JWT 未被拒绝（收到 2xx），请检查是否误将 functions.v1.verify_jwt 设为 false。"
+        )
+    if status not in {401, 403}:
+        raise AuthExchangeCheckError(
+            f"无效 JWT 回归断言失败：期望 401/403，实际 HTTP {status}，响应：{text}"
+        )
+    print("PASS AUTH-EXCHANGE-002：无效 JWT 被网关拒绝（401/403）。")
+
+
 def main() -> int:
     required_mode = to_bool(os.getenv("ARAPP_AUTH_EXCHANGE_REQUIRED"))
     verbose = to_bool(os.getenv("ARAPP_AUTH_EXCHANGE_VERBOSE"))
@@ -160,6 +193,10 @@ def main() -> int:
     method = (read_env("ARAPP_AUTH_EXCHANGE_METHOD") or "POST").upper()
     exchange_path = read_env("ARAPP_AUTH_EXCHANGE_PATH") or "/v1/auth/exchange"
     exchange_body = parse_body_json(read_env("ARAPP_AUTH_EXCHANGE_BODY_JSON"))
+    expect_invalid_jwt_reject = to_bool(
+        read_env("ARAPP_AUTH_EXCHANGE_EXPECT_INVALID_JWT_REJECT")
+        or ("1" if required_mode else "0")
+    )
 
     print("开始执行 auth/exchange 联调测试...")
     access_token, user_id = supabase_password_login(
@@ -173,7 +210,10 @@ def main() -> int:
 
     url = f"{edge_base_url.rstrip('/')}/{exchange_path.lstrip('/')}"
     headers = {
-        "Authorization": f"Bearer {access_token}",
+        # 网关 verify_jwt=true 下，使用项目 anon JWT 作为网关令牌；
+        # 真实用户会话 JWT 通过业务头传递给 auth/exchange 逻辑消费。
+        "Authorization": f"Bearer {anon_key}",
+        "X-ArApp-User-JWT": access_token,
         "Accept": "application/json",
         "Content-Type": "application/json",
         "X-ArApp-Client": "ci-auth-exchange",
@@ -201,6 +241,14 @@ def main() -> int:
         raise AuthExchangeCheckError(f"auth/exchange 响应缺少契约字段：{', '.join(missing_fields)}")
 
     print("PASS AUTH-EXCHANGE-001：/v1/auth/exchange 返回 2xx 且契约字段完整。")
+    if expect_invalid_jwt_reject:
+        assert_invalid_jwt_rejected(
+            method=method,
+            url=url,
+            timeout=timeout,
+            body=exchange_body,
+            user_access_token=access_token,
+        )
     if verbose:
         print(f"调试信息：status={status} request_id={payload.get('request_id')} code={payload.get('code')}")
     return 0

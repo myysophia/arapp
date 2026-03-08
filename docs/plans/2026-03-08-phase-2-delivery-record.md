@@ -58,6 +58,7 @@
   - iOS 构建与测试通过
 - `ARAPP_AUTH_EXCHANGE_REQUIRED=1 bash scripts/test-auth-exchange.sh`：通过
   - `PASS AUTH-EXCHANGE-001`
+  - `PASS AUTH-EXCHANGE-002`（无效 JWT 请求被网关拒绝）
 
 ## 5. 关键配置口径
 - Supabase 项目：`https://zlcnljlbuimlzhwpyrlj.supabase.co`
@@ -66,7 +67,8 @@
 
 ## 6. 遗留风险与后续建议
 - 真实 Provider 登录（Google/GitHub/Apple）需按 `13-provider-acceptance-checklist.md` 执行并补齐证据文件。
-- `auth/exchange` 已完成部署并通过强制门禁；当前为兼容现网 token 校验问题，`functions.v1.verify_jwt=false`。建议后续专项恢复网关级 JWT 校验并补回归。
+- `auth/exchange` 已恢复 `functions.v1.verify_jwt=true` 并完成无效 JWT 回归断言；后续保持 CI/预发强制门禁即可。
+  - 根因说明：Supabase Auth 用户会话为 ES256 JWT，当前网关校验策略对该 token 返回 `Invalid JWT`；已切换为“网关 JWT + 用户 JWT 分离传递”兼容方案（`Authorization` + `X-ArApp-User-JWT`）。
 - RLS 越权自动化脚本与最小策略迁移已在真实环境验证通过（RLS-001/RLS-002 均 PASS）；后续需持续在 CI/预发启用 `ARAPP_RLS_REQUIRED=1` 保持门禁。
 
 ## 7. Linear 对齐
@@ -78,8 +80,8 @@
   - `NIN-38`（P2-09）`Done`（Alerts 真实 subscriptions 读写与错误恢复语义已接线并通过回归）
   - `NIN-33`（P2-04）`Done`
   - `NIN-34`（P2-05）`Done`
-  - `NIN-32`（P2-10）`Done`（已完成评论回执）
-  - `NIN-39`（P2-11）`Done`（RLS 越权自动化脚本与执行入口已落地，真实环境强制校验通过）
-  - `NIN-40`（P2-12）`Done`（Provider 手工验收留痕模板与发布清单已落地）
-  - `NIN-41`（P2-13）`Done`（auth/exchange 联调自动化脚本与 CI 可选入口已落地）
-  - `NIN-42`（P2-14）`Done`（auth/exchange Edge Function 已部署，强制门禁校验通过）
+  - `NIN-32`（P2-10）`In Review`（PR #2 评审中）
+  - `NIN-39`（P2-11）`In Review`（PR #2 评审中）
+  - `NIN-40`（P2-12）`In Review`（PR #2 评审中）
+  - `NIN-41`（P2-13）`In Review`（PR #2 评审中）
+  - `NIN-42`（P2-14）`In Review`（PR #2 评审中）

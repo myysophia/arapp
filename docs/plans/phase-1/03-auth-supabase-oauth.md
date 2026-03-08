@@ -49,5 +49,5 @@
 1. 用户点击 Provider。
 2. 客户端完成 OAuth。
 3. 获取 Supabase session。
-4. 调用 `/v1/auth/exchange` 完成业务会话交换。
+4. 调用 `/v1/auth/exchange` 完成业务会话交换（`Authorization` 传网关 JWT，`X-ArApp-User-JWT` 传用户 access token）。
 5. 初始化 `profiles` 与 `user_preferences`。

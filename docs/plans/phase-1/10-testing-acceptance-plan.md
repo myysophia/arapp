@@ -125,7 +125,7 @@
 
 ### 14.4 仍需后续补齐
 - 真实 Supabase 环境下三方 Provider（Google/GitHub/Apple）逐项手工验收截图与成功率统计（执行清单见 `docs/plans/phase-1/13-provider-acceptance-checklist.md`）。
-- Edge `auth/exchange` 业务接口联调自动化已打通（函数已部署）；后续需补充网关级 JWT 校验回归（当前 `functions.v1.verify_jwt=false`）。
+- Edge `auth/exchange` 业务接口联调自动化已打通（函数已部署）；后续仅需持续执行 Provider 手工验收与证据回填。
 - RLS 越权自动化已完成真实环境验证并通过（`scripts/test-rls.py` / `scripts/test-rls.sh`）；后续重点是将 `ARAPP_RLS_REQUIRED=1` 固化到 CI/预发门禁配置。
 
 ## 15. RLS 自动化执行说明（2026-03-08）
@@ -177,6 +177,7 @@
 - `ARAPP_AUTH_EXCHANGE_BODY_JSON`：请求体 JSON 字符串，默认 `{}`。
 - `ARAPP_AUTH_EXCHANGE_TIMEOUT_SECONDS`：请求超时秒数，默认 `15`。
 - `ARAPP_AUTH_EXCHANGE_REQUIRED`：设为 `1` 时，缺少变量或请求失败直接返回非 0。
+- `ARAPP_AUTH_EXCHANGE_EXPECT_INVALID_JWT_REJECT`：默认跟随 `ARAPP_AUTH_EXCHANGE_REQUIRED`（强制模式默认开启），用于断言无效 JWT 被网关拒绝（401/403）。
 
 ### 16.4 当前行为
 - 若缺少必要环境变量且未设置 `ARAPP_AUTH_EXCHANGE_REQUIRED=1`，脚本输出 `SKIP` 并返回成功，避免阻塞日常开发。
@@ -200,8 +201,10 @@
 - 环境：
   - `ARAPP_EDGE_BASE_URL=https://zlcnljlbuimlzhwpyrlj.supabase.co/functions/v1`
   - 测试账号：`test1@agentgo.tech`
+  - 请求口径：`Authorization` 使用网关 JWT（anon），`X-ArApp-User-JWT` 传用户 access token。
 - 结果：
   - `PASS AUTH-EXCHANGE-001`：`/v1/auth/exchange` 返回 2xx，且包含 `request_id/code/message/retryable`。
+  - `PASS AUTH-EXCHANGE-002`：无效 JWT 请求被网关拒绝（401/403），验证 `verify_jwt=true` 生效。
 - 结论：
   - `auth/exchange` 自动化门禁已从“端点未部署”转为“可强制通过”。
-  - 当前配置采用 `functions.v1.verify_jwt=false`，后续需安排安全回归恢复网关级 JWT 校验。
+  - 已恢复 `functions.v1.verify_jwt=true`，并完成回归断言闭环。
