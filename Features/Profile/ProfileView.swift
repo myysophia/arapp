@@ -2,7 +2,11 @@ import SwiftUI
 
 struct ProfileView: View {
     @Environment(AppState.self) private var appState
-    @State private var authFlow = AuthFlowModel.shared
+    @State private var authFlow: AuthFlowModel
+
+    init(authFlow: AuthFlowModel = AuthFlowModel.shared) {
+        _authFlow = State(initialValue: authFlow)
+    }
 
     private var state: ProfileScreenState {
         ProfileScreenState(

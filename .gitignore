@@ -1,2 +1,4 @@
 ArApp.xcodeproj/
 .build/
+App/Environment/AppEnvironment.local.env
+App/Environment/AppEnvironment.local.xcconfig

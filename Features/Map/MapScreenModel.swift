@@ -54,29 +54,28 @@ final class MapScreenModel {
     private let liveClientFactory: @Sendable () throws -> any PollenAPIClienting
 
     init(
-        dataMode: DataMode = .mock,
+        dataMode: DataMode? = nil,
         mockScenario: MockScenario = .success,
         mockClient: MockPollenAPIClient = .demo,
-        liveClientFactory: @escaping @Sendable () throws -> any PollenAPIClienting = {
-            let environment = ProcessInfo.processInfo.environment
+        environment: AppEnvironment = .current,
+        liveClientFactory: (@Sendable () throws -> any PollenAPIClienting)? = nil
+    ) {
+        self.dataMode = dataMode ?? (environment.prefersLiveServices ? .client : .mock)
+        self.mockScenario = mockScenario
+        self.contentState = .loading
+        self.mockClient = mockClient
+        self.liveClientFactory = liveClientFactory ?? {
             guard
-                let rawBaseURL = environment["ARAPP_EDGE_BASE_URL"],
-                let baseURL = URL(string: rawBaseURL)
+                let baseURL = environment.edgeBaseURL
             else {
                 throw MapScreenModelError.missingBaseURL
             }
 
             return EdgeFunctionsPollenAPIClient(
                 baseURL: baseURL,
-                accessToken: environment["ARAPP_ACCESS_TOKEN"]
+                accessToken: environment.accessToken
             )
         }
-    ) {
-        self.dataMode = dataMode
-        self.mockScenario = mockScenario
-        self.contentState = .loading
-        self.mockClient = mockClient
-        self.liveClientFactory = liveClientFactory
     }
 
     var reloadKey: String {

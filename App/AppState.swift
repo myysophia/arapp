@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 
+@MainActor
 @Observable
 final class AppState {
     var hasSeenOnboarding = false
@@ -12,7 +13,18 @@ final class AppState {
         }
     }
 
-    init() {
+    let dependencies: AppDependencies
+    let todayScreenModel: TodayScreenModel
+    let mapScreenModel: MapScreenModel
+    let alertsScreenModel: AlertsScreenModel
+    let authFlowModel: AuthFlowModel
+
+    init(dependencies: AppDependencies = AppDependencies()) {
+        self.dependencies = dependencies
+        self.todayScreenModel = dependencies.makeTodayScreenModel()
+        self.mapScreenModel = dependencies.makeMapScreenModel()
+        self.alertsScreenModel = dependencies.makeAlertsScreenModel()
+        self.authFlowModel = dependencies.makeAuthFlowModel()
         self.localeIdentifier = L10n.storedLocaleIdentifier
         L10n.setLocaleIdentifier(localeIdentifier)
     }

@@ -98,3 +98,29 @@
 - API-001 / API-002：当前主要通过模型与 client 层对齐验证，尚未引入真实 contract fixture。
 - I18N-002：`disclaimer.non_medical` 需要在 UI 层增加显式断言。
 - UI-STATE-001 / UI-STATE-002：当前已在页面状态机实现，但还缺端到端 UI 级自动化。
+
+## 14. Phase 2 联调测试快照（2026-03-08）
+### 14.1 本次联调范围
+- P2-04：真实 `SupabaseAuthService`（`currentSession/signIn/signOut`）。
+- P2-05：OAuth 回调会话交换（`onOpenURL -> callback handler -> exchangeSession`）与 Profile/Login 状态联动。
+- P2-10：联调证据与发布文档收口。
+
+### 14.2 执行命令与结果
+- `bash scripts/test-ios.sh`
+  - 单元测试：25/25 通过（含新增 `AuthFlowModelTests` 3 个用例）。
+  - UI 冒烟：1/1 通过（`AppLaunchSmokeTests`）。
+- `bash scripts/ci-local.sh`
+  - 秘钥扫描通过。
+  - 文档结构检查通过。
+  - UI 原型冒烟通过。
+  - iOS 构建与测试通过。
+
+### 14.3 新增回归点
+- AUTH-CB-001：合法 OAuth 回调 URL 可完成会话交换并进入登录态。
+- AUTH-CB-002：非匹配 callback URL 被忽略，不污染当前会话状态。
+- AUTH-CB-003：callback 交换失败时展示错误，保持匿名兜底可继续主流程。
+
+### 14.4 仍需后续补齐
+- 真实 Supabase 环境下三方 Provider（Google/GitHub/Apple）逐项手工验收截图与成功率统计。
+- Edge `auth/exchange` 业务接口联调自动化（当前客户端已具备 callback->session，业务会话交换仍待后端契约落地）。
+- RLS 越权自动化（RLS-001 / RLS-002）仍为发布阻断项。

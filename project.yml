@@ -16,9 +16,14 @@ settings:
     Debug:
       ENABLE_TESTABILITY: YES
       SWIFT_OPTIMIZATION_LEVEL: -Onone
+      ONLY_ACTIVE_ARCH: YES
     Release:
       ENABLE_TESTABILITY: NO
       SWIFT_OPTIMIZATION_LEVEL: -O
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift.git
+    from: 2.0.0
 targets:
   ArApp:
     type: application
@@ -38,8 +43,14 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.myysophia.arapp
         INFOPLIST_FILE: App/Info.plist
+        ARAPP_SUPABASE_REDIRECT_SCHEME: arapp
+        ARAPP_SUPABASE_REDIRECT_HOST: auth
+        ARAPP_SUPABASE_REDIRECT_PATH: /callback
         CODE_SIGN_STYLE: Automatic
         DEFINES_MODULE: YES
+    dependencies:
+      - package: Supabase
+        product: Auth
     scheme:
       testTargets:
         - ArAppTests

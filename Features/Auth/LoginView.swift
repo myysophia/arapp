@@ -2,7 +2,11 @@ import SwiftUI
 
 struct LoginView: View {
     @Environment(AppState.self) private var appState
-    @State private var authFlow = AuthFlowModel.shared
+    @State private var authFlow: AuthFlowModel
+
+    init(authFlow: AuthFlowModel = AuthFlowModel.shared) {
+        _authFlow = State(initialValue: authFlow)
+    }
 
     var body: some View {
         ScrollView {

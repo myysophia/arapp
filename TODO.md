@@ -277,3 +277,72 @@
 
 ## 已完成任务
 - 暂无
+
+
+## [Phase 2 - Supabase 真联调与配置治理] (优先级: 高)
+创建时间：2026-03-07 19:20
+更新时间：2026-03-08 11:26 - 完成 P2-10 联调测试与发布文档收口
+
+### 真源与原则
+- 设计真源：`/Users/ninesun/projects/arapp-worktrees/phase2-kickoff/docs/plans/2026-03-07-phase-2-supabase-integration-design.md`
+- Phase 2 目标：真实 Supabase Auth、真实 Edge Functions API、配置治理、联调测试。
+- 任何新增第三方依赖安装前必须先确认。
+- 仓库只保留 sample 配置，不提交真实密钥。
+
+### 启动任务
+- [x] P2-01 - 建立环境配置契约与 sample 配置文件 ✅ (完成时间：2026-03-07 21:54)
+  - 成功标准：支持 mock/real 双模式切换；仓库内无真实密钥。
+  - 完成说明：
+    - 新增 `AppEnvironment` 统一配置解析：运行模式、Edge、Supabase 配置。
+    - 新增 sample 配置模板与说明文档：`App/Environment/AppEnvironment.sample.env`、`App/Environment/README.md`。
+    - 更新 `.gitignore`：忽略本地环境文件，避免真实密钥入库。
+    - Today/Map/Alerts 的 live 配置读取已改为统一入口，不再散落读取进程环境变量。
+    - 测试通过：`bash scripts/test-ios.sh`（单元 + UI 冒烟）。
+
+- [x] P2-02 - 建立运行模式切换与依赖注入装配 ✅ (完成时间：2026-03-07 22:00)
+  - 成功标准：切换模式不改业务页面代码；Today/Map/Alerts/Profile 可从统一注入点读取依赖。
+  - 完成说明：
+    - 新增 `AppDependencies` 作为统一装配入口，按环境创建 Auth 与页面模型依赖。
+    - `AppState` 新增统一持有：`dependencies`、`today/map/alerts` 模型、`authFlowModel`。
+    - `AppRootView` 改为从 `AppState` 注入 Today/Map/Alerts/Profile/Login 所需依赖对象。
+    - Today/Map/Alerts 模型改为支持显式 `environment` 注入，默认模式从环境推导。
+    - 测试通过：`bash scripts/test-ios.sh`（单元 + UI 冒烟）。
+
+- [x] P2-03 - 梳理 Supabase Auth 接入设计与回调路径 ✅ (完成时间：2026-03-07 22:20)
+  - 成功标准：明确 Provider 登录到业务会话链路；确认回调 scheme/Info.plist 约束与错误降级策略。
+  - 完成说明：
+    - 新增设计文档：`docs/plans/2026-03-07-p2-03-supabase-auth-callback-design.md`。
+    - 回调配置契约扩展：新增 `ARAPP_SUPABASE_REDIRECT_HOST`、`ARAPP_SUPABASE_REDIRECT_PATH`。
+    - `Info.plist` 与 `project.yml` 增加回调 scheme 注册与默认值，避免 P2-04 前配置散落。
+    - 新增 `SupabaseAuthCallbackParser` 与单元测试，覆盖成功/取消/错误/无效回调四类场景。
+
+- [x] P2-04 - 接入真实 Supabase AuthService ✅ (完成时间：2026-03-07 23:10)
+  - 成功标准：`AuthServicing` 在 real 模式下走 Supabase 真实现，支持读取会话、Provider 登录、登出，并保留 Mock 回退。
+  - 完成说明：
+    - `project.yml` 已接入 `supabase-swift`，主 target 依赖 `Auth` 产品，保持 Auth 能力最小引入。
+    - `SupabaseAuthConfiguration` 补充 `anonKey`，`AppDependencies` 完成 real 模式下的完整注入。
+    - `SupabaseAuthService` 从占位实现切换为真实实现：`currentSession`、`signIn`、`signOut`。
+    - 新增 `exchangeSession(fromCallbackURL:)`，将 P2-03 的 callback parser 与 `authClient.session(from:)` 串接，作为 P2-05 页面接线桥接点。
+    - 错误映射补齐：登录取消、Provider 不可用、session 缺失等场景统一收敛到 `AuthServiceError`。
+    - 验证通过：`bash scripts/test-ios.sh`、`bash scripts/ci-local.sh`（单元 + UI 冒烟 + 本地门禁）。
+
+- [x] P2-05 - 完成 Auth 会话交换与 Profile/Login 接线 ✅ (完成时间：2026-03-08 10:42)
+  - 成功标准：OAuth 回调进入 App 后可完成会话交换并刷新登录态；Profile/Login 与会话状态联动一致；非认证 URL 不误处理。
+  - 完成说明：
+    - 新增 `AuthCallbackSessionExchanging` 协议，明确 Auth 服务层的“回调 URL -> 会话”能力边界。
+    - `SupabaseAuthService` 显式实现该协议，复用 P2-04 的 `exchangeSession(fromCallbackURL:)`。
+    - `AuthFlowModel` 新增 `handleOAuthCallback(_:)`：成功写入登录会话，`invalidCallback` 忽略，取消/失败进入错误态并保留匿名兜底。
+    - `AppRootView` 增加 `.onOpenURL` 接线，处理 OAuth 回调；登录成功后自动回到主栈并聚焦 Profile tab。
+    - 新增单测 `AuthFlowModelTests`，覆盖回调成功、无关 URL 忽略、回调失败错误展示三类路径。
+    - 验证通过：`bash scripts/test-ios.sh`、`bash scripts/ci-local.sh`（25 单测 + 1 UI 冒烟 + 本地门禁）。
+
+- [x] P2-10 - 联调测试与发布文档收口 ✅ (完成时间：2026-03-08 11:26)
+  - 成功标准：关键真实链路有复现步骤；测试证据、配置说明、发布检查项文档齐全；本地门禁通过。
+  - 完成说明：
+    - 测试验收文档补充 Phase 2 联调快照与新增回归点：
+      - `docs/plans/phase-1/10-testing-acceptance-plan.md`
+    - 发布 runbook 补充 Phase 2 发布就绪清单（配置、门禁、人工检查、Auth 回滚）：
+      - `docs/plans/phase-1/11-release-observability-runbook.md`
+    - 新增 Phase 2 交付记录：
+      - `docs/plans/2026-03-08-phase-2-delivery-record.md`
+    - 验证通过：`bash scripts/test-ios.sh`、`bash scripts/ci-local.sh`。

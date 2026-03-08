@@ -117,6 +117,27 @@ final class AuthFlowModel {
         }
     }
 
+    func handleOAuthCallback(_ url: URL) async -> Bool {
+        guard let callbackService = service as? any AuthCallbackSessionExchanging else {
+            return false
+        }
+
+        do {
+            let exchangedSession = try await callbackService.exchangeSession(fromCallbackURL: url)
+            session = exchangedSession
+            phase = exchangedSession.isAnonymous ? .idle : .signedIn
+            hasBootstrapped = true
+            return true
+        } catch AuthServiceError.invalidCallback {
+            return false
+        } catch {
+            session = anonymousSession
+            phase = .failed(error.localizedDescription)
+            hasBootstrapped = true
+            return true
+        }
+    }
+
     func continueAnonymously() {
         session = anonymousSession
         phase = .idle
