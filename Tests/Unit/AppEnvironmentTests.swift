@@ -11,6 +11,8 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertEqual(environment.runtimeMode, .mock)
         XCTAssertFalse(environment.prefersLiveServices)
         XCTAssertNil(environment.edgeBaseURL)
+        XCTAssertEqual(environment.edgeTimeoutSeconds, AppEnvironmentDefaults.edgeTimeoutSeconds)
+        XCTAssertNil(environment.edgeRuntime)
         XCTAssertNil(environment.supabase)
     }
 
@@ -31,6 +33,31 @@ final class AppEnvironmentTests: XCTestCase {
         )
 
         XCTAssertEqual(environment.runtimeMode, .production)
+    }
+
+    func testResolveParsesEdgeTimeoutSeconds() {
+        let environment = AppEnvironment.resolve(
+            processEnv: [
+                "ARAPP_EDGE_BASE_URL": "https://example.functions.supabase.co",
+                "ARAPP_EDGE_TIMEOUT_SECONDS": "30"
+            ],
+            infoDictionary: [:]
+        )
+
+        XCTAssertEqual(environment.edgeTimeoutSeconds, 30)
+        XCTAssertEqual(environment.edgeRuntime?.timeoutInterval, 30)
+    }
+
+    func testResolveFallsBackToDefaultTimeoutWhenInvalid() {
+        let environment = AppEnvironment.resolve(
+            processEnv: [
+                "ARAPP_EDGE_BASE_URL": "https://example.functions.supabase.co",
+                "ARAPP_EDGE_TIMEOUT_SECONDS": "0"
+            ],
+            infoDictionary: [:]
+        )
+
+        XCTAssertEqual(environment.edgeTimeoutSeconds, AppEnvironmentDefaults.edgeTimeoutSeconds)
     }
 
     func testResolveBuildsSupabaseConfigOnlyWhenAllFieldsPresent() {

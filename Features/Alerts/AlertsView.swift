@@ -77,8 +77,12 @@ struct AlertsView: View {
         case let .success(state):
             AlertsConfiguredContent(
                 state: state,
-                onToggle: { screenModel.updateEnabled($0) },
-                onThresholdChange: { screenModel.updateThreshold($0) },
+                onToggle: { value in
+                    Task { await screenModel.updateEnabled(value) }
+                },
+                onThresholdChange: { value in
+                    Task { await screenModel.updateThreshold(value) }
+                },
                 onLogin: { appState.route = .login },
                 onSave: { appState.selectedTab = .profile }
             )

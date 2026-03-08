@@ -8,6 +8,7 @@
 ## 配置键
 - `ARAPP_RUNTIME_MODE`：`mock` / `staging` / `production`。
 - `ARAPP_EDGE_BASE_URL`：Edge Functions API 基础地址。
+- `ARAPP_EDGE_TIMEOUT_SECONDS`：Edge API 请求超时秒数（默认 `15`）。
 - `ARAPP_ACCESS_TOKEN`：联调时的访问令牌（可选）。
 - `ARAPP_SUPABASE_URL`：Supabase 项目 URL。
 - `ARAPP_SUPABASE_ANON_KEY`：Supabase anon key。

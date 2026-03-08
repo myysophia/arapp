@@ -64,17 +64,9 @@ final class MapScreenModel {
         self.mockScenario = mockScenario
         self.contentState = .loading
         self.mockClient = mockClient
+        let resolvedFactory = LivePollenClientFactory(environment: environment)
         self.liveClientFactory = liveClientFactory ?? {
-            guard
-                let baseURL = environment.edgeBaseURL
-            else {
-                throw MapScreenModelError.missingBaseURL
-            }
-
-            return EdgeFunctionsPollenAPIClient(
-                baseURL: baseURL,
-                accessToken: environment.accessToken
-            )
+            try resolvedFactory.makeClient()
         }
     }
 
@@ -94,17 +86,17 @@ final class MapScreenModel {
                 let client = try liveClientFactory()
                 contentState = try await makeClientState(using: client)
             }
-        } catch let error as MapScreenModelError {
+        } catch let error as LivePollenClientFactoryError {
             contentState = .failure(
-                title: error.title,
-                detail: error.errorDescription ?? L10n.tr("map.error.load_failed"),
-                retryable: error.isRetryable
+                title: L10n.tr("common.client_not_configured"),
+                detail: error.errorDescription ?? L10n.tr("map.error.missing_base_url"),
+                retryable: false
             )
         } catch let error as APIClientError {
             contentState = .failure(
                 title: L10n.tr("common.client_unavailable"),
                 detail: error.errorDescription ?? L10n.tr("map.error.client_request_failed"),
-                retryable: true
+                retryable: error.isRetryable
             )
         } catch {
             contentState = .failure(
@@ -316,31 +308,6 @@ final class MapScreenModel {
         }
 
         return mapped.isEmpty ? demoState.searchItems : mapped
-    }
-}
-
-private enum MapScreenModelError: LocalizedError {
-    case missingBaseURL
-
-    var title: String {
-        switch self {
-        case .missingBaseURL:
-            L10n.tr("common.client_not_configured")
-        }
-    }
-
-    var isRetryable: Bool {
-        switch self {
-        case .missingBaseURL:
-            false
-        }
-    }
-
-    var errorDescription: String? {
-        switch self {
-        case .missingBaseURL:
-            L10n.tr("map.error.missing_base_url")
-        }
     }
 }
 

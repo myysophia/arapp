@@ -65,17 +65,9 @@ final class TodayScreenModel {
         self.mockScenario = mockScenario
         self.contentState = .loading
         self.mockClient = mockClient
+        let resolvedFactory = LivePollenClientFactory(environment: environment)
         self.liveClientFactory = liveClientFactory ?? {
-            guard
-                let baseURL = environment.edgeBaseURL
-            else {
-                throw TodayScreenModelError.missingBaseURL
-            }
-
-            return EdgeFunctionsPollenAPIClient(
-                baseURL: baseURL,
-                accessToken: environment.accessToken
-            )
+            try resolvedFactory.makeClient()
         }
     }
 
@@ -95,17 +87,17 @@ final class TodayScreenModel {
                 let client = try liveClientFactory()
                 contentState = try await makeClientState(using: client)
             }
-        } catch let error as TodayScreenModelError {
+        } catch let error as LivePollenClientFactoryError {
             contentState = .failure(
-                title: error.title,
-                detail: error.errorDescription ?? L10n.tr("today.error.load_failed"),
-                retryable: error.isRetryable
+                title: L10n.tr("common.client_not_configured"),
+                detail: error.errorDescription ?? L10n.tr("today.error.missing_base_url"),
+                retryable: false
             )
         } catch let error as APIClientError {
             contentState = .failure(
                 title: L10n.tr("common.client_unavailable"),
                 detail: error.errorDescription ?? L10n.tr("today.error.network_failed"),
-                retryable: true
+                retryable: error.isRetryable
             )
         } catch {
             contentState = .failure(
@@ -157,7 +149,7 @@ final class TodayScreenModel {
         return TodayScreenState(
             summary: summary,
             forecast: forecast,
-            source: sourceMeta.first(where: \ .active) ?? sourceMeta.first ?? .placeholder(for: summary.source),
+            source: sourceMeta.first(where: \.active) ?? sourceMeta.first ?? .placeholder(for: summary.source),
             adviceItems: Self.makeAdviceItems(for: summary.riskOverall)
         )
     }
@@ -197,31 +189,6 @@ final class TodayScreenModel {
                 TodayAdviceItem(title: L10n.tr("today.advice.high.2.title"), detail: L10n.tr("today.advice.high.2.detail"), systemImage: "shield.lefthalf.filled"),
                 TodayAdviceItem(title: L10n.tr("today.advice.high.3.title"), detail: L10n.tr("today.advice.high.3.detail"), systemImage: "bell.badge")
             ]
-        }
-    }
-}
-
-private enum TodayScreenModelError: LocalizedError {
-    case missingBaseURL
-
-    var title: String {
-        switch self {
-        case .missingBaseURL:
-            L10n.tr("common.client_not_configured")
-        }
-    }
-
-    var isRetryable: Bool {
-        switch self {
-        case .missingBaseURL:
-            false
-        }
-    }
-
-    var errorDescription: String? {
-        switch self {
-        case .missingBaseURL:
-            L10n.tr("today.error.missing_base_url")
         }
     }
 }

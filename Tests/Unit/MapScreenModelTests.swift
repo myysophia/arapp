@@ -3,6 +3,65 @@ import XCTest
 
 @MainActor
 final class MapScreenModelTests: XCTestCase {
+    func testClientSuccessProducesSuccessState() async {
+        let model = MapScreenModel(
+            dataMode: .client,
+            liveClientFactory: {
+                MockPollenAPIClient.demo
+            }
+        )
+
+        await model.reload()
+
+        guard case let .success(state) = model.contentState else {
+            return XCTFail("期望 client 模式进入成功态。")
+        }
+
+        XCTAssertFalse(state.mapPoints.isEmpty)
+        XCTAssertFalse(state.searchItems.isEmpty)
+        XCTAssertEqual(model.selectedPointID, state.mapPoints.first?.id)
+    }
+
+    func testClientTransportFailureProducesRetryableFailure() async {
+        let model = MapScreenModel(
+            dataMode: .client,
+            liveClientFactory: {
+                throw APIClientError.transportFailed("offline")
+            }
+        )
+
+        await model.reload()
+
+        guard case let .failure(_, detail, retryable) = model.contentState else {
+            return XCTFail("期望进入失败态。")
+        }
+
+        XCTAssertTrue(detail.contains("offline"))
+        XCTAssertTrue(retryable)
+    }
+
+    func testClientNonRetryableStatusFailureProducesNonRetryableState() async {
+        let model = MapScreenModel(
+            dataMode: .client,
+            liveClientFactory: {
+                throw APIClientError.unexpectedStatus(
+                    code: 400,
+                    message: "bad request",
+                    retryable: false
+                )
+            }
+        )
+
+        await model.reload()
+
+        guard case let .failure(_, detail, retryable) = model.contentState else {
+            return XCTFail("期望进入失败态。")
+        }
+
+        XCTAssertTrue(detail.contains("400"))
+        XCTAssertFalse(retryable)
+    }
+
     func testMockSuccessSelectsFirstPoint() async {
         let model = MapScreenModel(dataMode: .mock, mockScenario: .success)
 

@@ -56,10 +56,17 @@ struct SupabaseRuntimeConfiguration: Sendable, Equatable {
     let redirectPath: String
 }
 
+struct EdgeRuntimeConfiguration: Sendable, Equatable {
+    let baseURL: URL
+    let accessToken: String?
+    let timeoutInterval: TimeInterval
+}
+
 struct AppEnvironment: Sendable, Equatable {
     let buildConfiguration: BuildConfiguration
     let runtimeMode: AppRuntimeMode
     let edgeBaseURL: URL?
+    let edgeTimeoutSeconds: TimeInterval
     let accessToken: String?
     let supabase: SupabaseRuntimeConfiguration?
 
@@ -74,12 +81,28 @@ struct AppEnvironment: Sendable, Equatable {
         runtimeMode.prefersLiveServices
     }
 
+    var edgeRuntime: EdgeRuntimeConfiguration? {
+        guard let edgeBaseURL else { return nil }
+        return EdgeRuntimeConfiguration(
+            baseURL: edgeBaseURL,
+            accessToken: accessToken,
+            timeoutInterval: edgeTimeoutSeconds
+        )
+    }
+
     static func resolve(
         processEnv: [String: String],
         infoDictionary: [String: Any]
     ) -> AppEnvironment {
         let runtimeMode = AppRuntimeMode.resolve(from: value(for: AppEnvironmentKey.runtimeMode, processEnv: processEnv, infoDictionary: infoDictionary))
         let edgeBaseURL = makeURL(value(for: AppEnvironmentKey.edgeBaseURL, processEnv: processEnv, infoDictionary: infoDictionary))
+        let edgeTimeoutSeconds = makeTimeoutSeconds(
+            value(
+                for: AppEnvironmentKey.edgeTimeoutSeconds,
+                processEnv: processEnv,
+                infoDictionary: infoDictionary
+            )
+        ) ?? AppEnvironmentDefaults.edgeTimeoutSeconds
         let accessToken = value(for: AppEnvironmentKey.accessToken, processEnv: processEnv, infoDictionary: infoDictionary)
 
         let supabaseURLValue = value(for: AppEnvironmentKey.supabaseURL, processEnv: processEnv, infoDictionary: infoDictionary)
@@ -99,6 +122,7 @@ struct AppEnvironment: Sendable, Equatable {
             buildConfiguration: BuildConfiguration.resolve(from: processEnv["CONFIGURATION"]),
             runtimeMode: runtimeMode,
             edgeBaseURL: edgeBaseURL,
+            edgeTimeoutSeconds: edgeTimeoutSeconds,
             accessToken: accessToken,
             supabase: supabase
         )
@@ -129,6 +153,13 @@ struct AppEnvironment: Sendable, Equatable {
     private static func makeURL(_ rawValue: String?) -> URL? {
         guard let rawValue else { return nil }
         return URL(string: rawValue)
+    }
+
+    private static func makeTimeoutSeconds(_ rawValue: String?) -> TimeInterval? {
+        guard let rawValue, let parsed = TimeInterval(rawValue), parsed > 0 else {
+            return nil
+        }
+        return parsed
     }
 
     private static func makeSupabaseConfiguration(
@@ -172,10 +203,15 @@ struct AppEnvironment: Sendable, Equatable {
 enum AppEnvironmentKey {
     static let runtimeMode = "ARAPP_RUNTIME_MODE"
     static let edgeBaseURL = "ARAPP_EDGE_BASE_URL"
+    static let edgeTimeoutSeconds = "ARAPP_EDGE_TIMEOUT_SECONDS"
     static let accessToken = "ARAPP_ACCESS_TOKEN"
     static let supabaseURL = "ARAPP_SUPABASE_URL"
     static let supabaseAnonKey = "ARAPP_SUPABASE_ANON_KEY"
     static let supabaseRedirectScheme = "ARAPP_SUPABASE_REDIRECT_SCHEME"
     static let supabaseRedirectHost = "ARAPP_SUPABASE_REDIRECT_HOST"
     static let supabaseRedirectPath = "ARAPP_SUPABASE_REDIRECT_PATH"
+}
+
+enum AppEnvironmentDefaults {
+    static let edgeTimeoutSeconds: TimeInterval = 15
 }

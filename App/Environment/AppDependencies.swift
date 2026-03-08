@@ -9,17 +9,35 @@ struct AppDependencies: Sendable {
 
     @MainActor
     func makeTodayScreenModel() -> TodayScreenModel {
-        TodayScreenModel(environment: environment)
+        let appEnvironment = self.environment
+        return TodayScreenModel(
+            environment: appEnvironment,
+            liveClientFactory: {
+                try LivePollenClientFactory(environment: appEnvironment).makeClient()
+            }
+        )
     }
 
     @MainActor
     func makeMapScreenModel() -> MapScreenModel {
-        MapScreenModel(environment: environment)
+        let appEnvironment = self.environment
+        return MapScreenModel(
+            environment: appEnvironment,
+            liveClientFactory: {
+                try LivePollenClientFactory(environment: appEnvironment).makeClient()
+            }
+        )
     }
 
     @MainActor
     func makeAlertsScreenModel() -> AlertsScreenModel {
-        AlertsScreenModel(environment: environment)
+        let appEnvironment = self.environment
+        return AlertsScreenModel(
+            environment: appEnvironment,
+            liveClientFactory: {
+                try LivePollenClientFactory(environment: appEnvironment).makeClient()
+            }
+        )
     }
 
     @MainActor
@@ -45,4 +63,5 @@ struct AppDependencies: Sendable {
             )
         )
     }
+
 }

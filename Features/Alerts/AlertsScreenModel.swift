@@ -64,17 +64,9 @@ final class AlertsScreenModel {
         self.mockScenario = mockScenario
         self.contentState = .loading
         self.mockClient = mockClient
+        let resolvedFactory = LivePollenClientFactory(environment: environment)
         self.liveClientFactory = liveClientFactory ?? {
-            guard
-                let baseURL = environment.edgeBaseURL
-            else {
-                throw AlertsScreenModelError.missingBaseURL
-            }
-
-            return EdgeFunctionsPollenAPIClient(
-                baseURL: baseURL,
-                accessToken: environment.accessToken
-            )
+            try resolvedFactory.makeClient()
         }
     }
 
@@ -94,37 +86,27 @@ final class AlertsScreenModel {
                 let client = try liveClientFactory()
                 contentState = try await makeClientState(using: client)
             }
-        } catch let error as AlertsScreenModelError {
-            contentState = .failure(
-                title: error.title,
-                detail: error.errorDescription ?? L10n.tr("alerts.error.load_failed"),
-                retryable: error.isRetryable
-            )
-        } catch let error as APIClientError {
-            contentState = .failure(
-                title: L10n.tr("common.client_unavailable"),
-                detail: error.errorDescription ?? L10n.tr("alerts.error.client_request_failed"),
-                retryable: true
-            )
         } catch {
-            contentState = .failure(
-                title: L10n.tr("alerts.error.screen_failed"),
-                detail: error.localizedDescription,
-                retryable: true
-            )
+            contentState = failureState(for: error)
         }
     }
 
-    func updateEnabled(_ enabled: Bool) {
+    func updateEnabled(_ enabled: Bool) async {
         guard case var .success(state) = contentState else { return }
         state.subscription = state.subscription.withEnabled(enabled)
         contentState = .success(state)
+
+        guard dataMode == .client else { return }
+        await persistSubscription(state.subscription)
     }
 
-    func updateThreshold(_ level: AppRiskLevel) {
+    func updateThreshold(_ level: AppRiskLevel) async {
         guard case var .success(state) = contentState else { return }
         state.subscription = state.subscription.withThreshold(level)
         contentState = .success(state)
+
+        guard dataMode == .client else { return }
+        await persistSubscription(state.subscription)
     }
 
     private func makeMockState() async throws -> ContentState {
@@ -172,29 +154,49 @@ final class AlertsScreenModel {
         AlertHistoryItem(id: UUID(), date: "2026-03-06T07:00:00Z", riskLevel: .high, title: L10n.tr("alerts.history.client.1")),
         AlertHistoryItem(id: UUID(), date: "2026-03-05T07:00:00Z", riskLevel: .moderate, title: L10n.tr("alerts.history.client.2"))
     ]
-}
 
-private enum AlertsScreenModelError: LocalizedError {
-    case missingBaseURL
+    private func persistSubscription(_ subscription: AlertSubscription) async {
+        let request = AlertSubscriptionRequest(
+            userID: subscription.userID,
+            locationID: subscription.locationID,
+            thresholdLevel: subscription.thresholdLevel,
+            enabled: subscription.enabled,
+            quietHours: subscription.quietHours
+        )
 
-    var title: String {
-        switch self {
-        case .missingBaseURL:
-            L10n.tr("common.client_not_configured")
+        do {
+            let client = try liveClientFactory()
+            let updatedSubscription = try await client.upsertAlertSubscription(request).payload
+
+            guard case var .success(state) = contentState else { return }
+            state.subscription = updatedSubscription
+            contentState = .success(state)
+        } catch {
+            contentState = failureState(for: error)
         }
     }
 
-    var isRetryable: Bool {
-        switch self {
-        case .missingBaseURL:
-            false
+    private func failureState(for error: Error) -> ContentState {
+        if let configError = error as? LivePollenClientFactoryError {
+            return .failure(
+                title: L10n.tr("common.client_not_configured"),
+                detail: configError.errorDescription ?? L10n.tr("alerts.error.missing_base_url"),
+                retryable: false
+            )
         }
-    }
 
-    var errorDescription: String? {
-        switch self {
-        case .missingBaseURL:
-            L10n.tr("alerts.error.missing_base_url")
+        if let apiError = error as? APIClientError {
+            return .failure(
+                title: L10n.tr("common.client_unavailable"),
+                detail: apiError.errorDescription ?? L10n.tr("alerts.error.client_request_failed"),
+                retryable: apiError.isRetryable
+            )
         }
+
+        return .failure(
+            title: L10n.tr("alerts.error.screen_failed"),
+            detail: error.localizedDescription,
+            retryable: true
+        )
     }
 }
