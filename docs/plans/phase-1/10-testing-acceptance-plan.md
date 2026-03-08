@@ -94,7 +94,7 @@
   - 国际化接入后，关键页面仍可构建并通过烟测。
 
 ## 13. 后续补测缺口
-- RLS-001 / RLS-002：依赖 Supabase 真实环境，当前尚未自动化落地。
+- RLS-001 / RLS-002：已在真实 Supabase 环境通过 A/B 账号完成越权校验，建议在 CI 持续启用 `ARAPP_RLS_REQUIRED=1` 作为强制门禁。
 - API-001 / API-002：当前主要通过模型与 client 层对齐验证，尚未引入真实 contract fixture。
 - I18N-002：`disclaimer.non_medical` 需要在 UI 层增加显式断言。
 - UI-STATE-001 / UI-STATE-002：当前已在页面状态机实现，但还缺端到端 UI 级自动化。
@@ -103,11 +103,12 @@
 ### 14.1 本次联调范围
 - P2-04：真实 `SupabaseAuthService`（`currentSession/signIn/signOut`）。
 - P2-05：OAuth 回调会话交换（`onOpenURL -> callback handler -> exchangeSession`）与 Profile/Login 状态联动。
+- P2-06：统一真实 API 运行时配置与请求装配（`EdgeFunctionsRequestConfiguration` + `LivePollenClientFactory`）。
 - P2-10：联调证据与发布文档收口。
 
 ### 14.2 执行命令与结果
 - `bash scripts/test-ios.sh`
-  - 单元测试：25/25 通过（含新增 `AuthFlowModelTests` 3 个用例）。
+  - 单元测试：41/41 通过（含新增 `AuthFlowModelTests`、`LivePollenClientFactoryTests`、`MapScreenModelTests`、`AlertsScreenModelTests` client 路径用例）。
   - UI 冒烟：1/1 通过（`AppLaunchSmokeTests`）。
 - `bash scripts/ci-local.sh`
   - 秘钥扫描通过。
@@ -119,8 +120,88 @@
 - AUTH-CB-001：合法 OAuth 回调 URL 可完成会话交换并进入登录态。
 - AUTH-CB-002：非匹配 callback URL 被忽略，不污染当前会话状态。
 - AUTH-CB-003：callback 交换失败时展示错误，保持匿名兜底可继续主流程。
+- API-CFG-001：Edge timeout 与 token 可通过 `AppEnvironment` 正确解析并传递到请求装配层。
+- API-CFG-002：缺少 Edge base URL 时，统一抛出可识别配置错误，页面侧进入不可重试失败态。
 
 ### 14.4 仍需后续补齐
-- 真实 Supabase 环境下三方 Provider（Google/GitHub/Apple）逐项手工验收截图与成功率统计。
-- Edge `auth/exchange` 业务接口联调自动化（当前客户端已具备 callback->session，业务会话交换仍待后端契约落地）。
-- RLS 越权自动化（RLS-001 / RLS-002）仍为发布阻断项。
+- 真实 Supabase 环境下三方 Provider（Google/GitHub/Apple）逐项手工验收截图与成功率统计（执行清单见 `docs/plans/phase-1/13-provider-acceptance-checklist.md`）。
+- Edge `auth/exchange` 业务接口联调自动化已打通（函数已部署）；后续需补充网关级 JWT 校验回归（当前 `functions.v1.verify_jwt=false`）。
+- RLS 越权自动化已完成真实环境验证并通过（`scripts/test-rls.py` / `scripts/test-rls.sh`）；后续重点是将 `ARAPP_RLS_REQUIRED=1` 固化到 CI/预发门禁配置。
+
+## 15. RLS 自动化执行说明（2026-03-08）
+### 15.1 执行命令
+- 本地执行：`bash scripts/test-rls.sh`
+- CI 执行：`bash scripts/ci-local.sh`（已接入 RLS 步骤）
+
+### 15.2 必要环境变量
+- `ARAPP_SUPABASE_URL`
+- `ARAPP_SUPABASE_ANON_KEY`
+- `ARAPP_RLS_USER_A_EMAIL`
+- `ARAPP_RLS_USER_A_PASSWORD`
+- `ARAPP_RLS_USER_B_EMAIL`
+- `ARAPP_RLS_USER_B_PASSWORD`
+
+### 15.3 可选环境变量
+- `ARAPP_RLS_LOCATION_ID`：当 B 用户无 `alert_subscriptions` 时用于提供 location 兜底。
+- `ARAPP_RLS_THRESHOLD_LEVEL`：写入阈值兜底，默认 `moderate`。
+- `ARAPP_RLS_TIMEOUT_SECONDS`：请求超时秒数，默认 `15`。
+- `ARAPP_RLS_REQUIRED`：设为 `1` 时，缺少变量将直接失败（用于强制门禁）。
+
+### 15.4 当前行为
+- 若缺少必要环境变量且未设置 `ARAPP_RLS_REQUIRED=1`，脚本输出 `SKIP` 并返回成功，避免阻塞日常开发。
+- 在发布/预发门禁中建议设置 `ARAPP_RLS_REQUIRED=1`，使 RLS 校验变为强制项。
+
+### 15.5 本次实测结果（2026-03-08）
+- 测试账号：A/B 两个 Supabase 邮箱账号（真实环境）。
+- 执行命令：`ARAPP_RLS_REQUIRED=1 bash scripts/test-rls.sh`
+- 结果：
+  - `PASS RLS-001`：A 用户读取 B 用户 `devices` 失败（符合预期）。
+  - `PASS RLS-002`：A 用户写入 B 用户 `alert_subscriptions` 失败（符合预期）。
+- 结论：RLS 越权自动化脚本与数据库策略闭环成立，可作为发布阻断门禁。
+
+## 16. auth/exchange 自动化执行说明（2026-03-08）
+### 16.1 执行命令
+- 本地执行：`bash scripts/test-auth-exchange.sh`
+- CI 执行：`bash scripts/ci-local.sh`（已接入 auth/exchange 步骤）
+
+### 16.2 必要环境变量
+- `ARAPP_SUPABASE_URL`
+- `ARAPP_SUPABASE_ANON_KEY`
+- `ARAPP_EDGE_BASE_URL`
+- `ARAPP_AUTH_TEST_EMAIL`
+- `ARAPP_AUTH_TEST_PASSWORD`
+
+### 16.3 可选环境变量
+- `ARAPP_AUTH_EXCHANGE_PATH`：默认 `/v1/auth/exchange`。
+- `ARAPP_AUTH_EXCHANGE_METHOD`：默认 `POST`。
+- `ARAPP_AUTH_EXCHANGE_BODY_JSON`：请求体 JSON 字符串，默认 `{}`。
+- `ARAPP_AUTH_EXCHANGE_TIMEOUT_SECONDS`：请求超时秒数，默认 `15`。
+- `ARAPP_AUTH_EXCHANGE_REQUIRED`：设为 `1` 时，缺少变量或请求失败直接返回非 0。
+
+### 16.4 当前行为
+- 若缺少必要环境变量且未设置 `ARAPP_AUTH_EXCHANGE_REQUIRED=1`，脚本输出 `SKIP` 并返回成功，避免阻塞日常开发。
+- 在预发/发布门禁建议设置 `ARAPP_AUTH_EXCHANGE_REQUIRED=1`，并配合后端端点部署状态启用强制阻断。
+
+### 16.5 本次实测结果（2026-03-08）
+- 测试账号：`test1@agentgo.tech`
+- 执行：
+  - 非强制：`bash scripts/test-auth-exchange.sh`
+  - 强制：`ARAPP_AUTH_EXCHANGE_REQUIRED=1 bash scripts/test-auth-exchange.sh`
+- 环境：`ARAPP_EDGE_BASE_URL=https://zlcnljlbuimlzhwpyrlj.supabase.co/functions/v1`
+- 结果：
+  - 非强制模式：`HTTP 404 NOT_FOUND` 时按预期输出 `SKIP` 并返回成功。
+  - 强制模式：同样场景返回非 0 并阻断（符合门禁语义）。
+- 结论：脚本行为符合设计；当前阻塞点是后端 `auth/exchange` 函数尚未部署。
+
+### 16.6 部署后复测结果（2026-03-08）
+- 动作：
+  - 已部署 Edge Function `v1`，并承载路径 `/v1/auth/exchange`。
+  - 执行：`ARAPP_AUTH_EXCHANGE_REQUIRED=1 bash scripts/test-auth-exchange.sh`
+- 环境：
+  - `ARAPP_EDGE_BASE_URL=https://zlcnljlbuimlzhwpyrlj.supabase.co/functions/v1`
+  - 测试账号：`test1@agentgo.tech`
+- 结果：
+  - `PASS AUTH-EXCHANGE-001`：`/v1/auth/exchange` 返回 2xx，且包含 `request_id/code/message/retryable`。
+- 结论：
+  - `auth/exchange` 自动化门禁已从“端点未部署”转为“可强制通过”。
+  - 当前配置采用 `functions.v1.verify_jwt=false`，后续需安排安全回归恢复网关级 JWT 校验。

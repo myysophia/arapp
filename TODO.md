@@ -281,7 +281,7 @@
 
 ## [Phase 2 - Supabase 真联调与配置治理] (优先级: 高)
 创建时间：2026-03-07 19:20
-更新时间：2026-03-08 11:26 - 完成 P2-10 联调测试与发布文档收口
+更新时间：2026-03-08 20:19 - 完成 P2-14（auth/exchange 函数部署与强制门禁验证）
 
 ### 真源与原则
 - 设计真源：`/Users/ninesun/projects/arapp-worktrees/phase2-kickoff/docs/plans/2026-03-07-phase-2-supabase-integration-design.md`
@@ -336,6 +336,43 @@
     - 新增单测 `AuthFlowModelTests`，覆盖回调成功、无关 URL 忽略、回调失败错误展示三类路径。
     - 验证通过：`bash scripts/test-ios.sh`、`bash scripts/ci-local.sh`（25 单测 + 1 UI 冒烟 + 本地门禁）。
 
+- [x] P2-06 - 建立真实 API 配置与请求装配 ✅ (完成时间：2026-03-08 14:32)
+  - 成功标准：统一 API 配置模型、请求装配层、错误分类入口落地；Today/Map/Alerts 复用统一 live client 装配。
+  - 完成说明：
+    - 新增 `EdgeFunctionsRequestConfiguration`：统一管理 `baseURL / token / timeout / defaultHeaders`。
+    - 新增 `LivePollenClientFactory`：统一把 `AppEnvironment` 映射为 live API client（含 `X-ArApp-Client` 默认头）。
+    - `APIEndpoint` 请求构造改为基于统一配置装配，补齐请求超时和默认头注入。
+    - `AppDependencies` 统一向 Today/Map/Alerts 注入同一套 live client factory，移除页面层重复拼装逻辑。
+    - 新增 `ARAPP_EDGE_TIMEOUT_SECONDS` 配置契约，并补充 `AppEnvironment` 解析与文档说明。
+    - 新增单测：`LivePollenClientFactoryTests`；`AppEnvironmentTests` 增补 timeout 解析覆盖。
+    - 验证通过：`bash scripts/test-ios.sh`（30 单测 + 1 UI 冒烟）。
+
+- [x] P2-07 - Today 接入真实 summary/forecast ✅ (完成时间：2026-03-08 14:48)
+  - 成功标准：Today 真实接口成功展示；失败路径可见且可重试。
+  - 完成说明：
+    - Today live client 构造统一复用 `LivePollenClientFactory`，与 Map/Alerts 保持同一配置入口。
+    - Today client 路径补齐成功态、forecast 空态、非重试失败态覆盖，确保真实接口返回在 UI 状态机上可见。
+    - `APIClientError` 新增 `isRetryable` 语义，Today 失败态按错误类型映射可重试标记。
+    - 验证通过：`bash scripts/test-ios.sh`（33 单测 + 1 UI 冒烟）、`bash scripts/ci-local.sh`（本地 CI 全部通过）。
+
+- [x] P2-08 - Map 接入真实 suggestions/sources ✅ (完成时间：2026-03-08 15:14)
+  - 成功标准：Map 真实接口成功展示；失败路径可见且可重试。
+  - 完成说明：
+    - Map client 路径补齐成功态与失败态验证，覆盖 `summary/suggestions/sources` 联合装配结果。
+    - `MapScreenModel` 失败态重试语义与 `APIClientError.isRetryable` 对齐，避免非重试错误误标可重试。
+    - 新增 `MapScreenModelTests` client 用例：成功态、网络失败可重试、非重试状态失败。
+    - 验证通过：`bash scripts/test-ios.sh`（36 单测 + 1 UI 冒烟）、`bash scripts/ci-local.sh`（本地 CI 全部通过）。
+
+- [x] P2-09 - Alerts 接入真实 subscriptions ✅ (完成时间：2026-03-08 15:26)
+  - 成功标准：Alerts 真实接口读写可用；错误可见并可恢复。
+  - 完成说明：
+    - `AlertsScreenModel.reload()` 失败处理统一走 `failureState(for:)`，错误展示语义保持一致。
+    - `APIClientError` 分支的重试标记改为 `apiError.isRetryable`，避免误标记不可重试错误。
+    - `updateEnabled` / `updateThreshold` 改为异步写回，client 模式下通过 `persistSubscription(_:)` 调用 `upsertAlertSubscription`。
+    - `AlertsView` 的开关与阈值变更改为 `Task { await ... }`，与异步写回链路对齐。
+    - 新增 `AlertsScreenModelTests` client 用例，覆盖成功态、可重试/不可重试失败态、写回失败与恢复路径。
+    - 验证通过：`bash scripts/test-ios.sh`（41 单测 + 1 UI 冒烟）、`bash scripts/ci-local.sh`（本地 CI 全部通过）。
+
 - [x] P2-10 - 联调测试与发布文档收口 ✅ (完成时间：2026-03-08 11:26)
   - 成功标准：关键真实链路有复现步骤；测试证据、配置说明、发布检查项文档齐全；本地门禁通过。
   - 完成说明：
@@ -346,3 +383,35 @@
     - 新增 Phase 2 交付记录：
       - `docs/plans/2026-03-08-phase-2-delivery-record.md`
     - 验证通过：`bash scripts/test-ios.sh`、`bash scripts/ci-local.sh`。
+
+- [x] P2-11 - RLS 越权自动化脚本与执行入口（Linear: `NIN-39`）✅ (完成时间：2026-03-08 18:52)
+  - 成功标准：RLS-001/RLS-002 可自动校验并输出 PASS/FAIL；缺少凭据时给出可追踪 SKIP 原因。
+  - 完成说明：
+    - 已新增 `scripts/test-rls.py`（A/B 双账号越权读写校验）与 `scripts/test-rls.sh`，并接入 `scripts/ci-local.sh`。
+    - 已在 Supabase 真实环境执行最小 schema/RLS 迁移：`locations`、`devices`、`alert_subscriptions`（含 policy、grant、trigger）。
+    - 已执行强制校验：`ARAPP_RLS_REQUIRED=1 bash scripts/test-rls.sh`，结果 `RLS-001`/`RLS-002` 均 PASS。
+    - 发布建议：CI/预发持续启用 `ARAPP_RLS_REQUIRED=1`，将越权校验作为阻断门禁。
+
+- [x] P2-12 - Provider 手工验收留痕模板与发布清单（Linear: `NIN-40`）✅ (完成时间：2026-03-08 19:04)
+  - 成功标准：三方 Provider 的手工验收步骤、通过标准、截图/日志留痕路径固定，发布前可直接执行。
+  - 完成说明：
+    - 新增 `docs/plans/phase-1/13-provider-acceptance-checklist.md`，覆盖 Google/GitHub/Apple 成功/取消场景矩阵。
+    - 新增统一失败记录模板与证据目录约定，避免验收口径分散。
+    - `11-release-observability-runbook.md` 已互链 Provider 验收清单。
+
+- [x] P2-13 - auth/exchange 联调自动化脚本与 CI 可选入口（Linear: `NIN-41`）✅ (完成时间：2026-03-08 19:04)
+  - 成功标准：支持缺省 SKIP、强制失败模式；能校验 `/v1/auth/exchange` 的 2xx 与契约字段完整性。
+  - 完成说明：
+    - 新增 `scripts/test-auth-exchange.py`、`scripts/test-auth-exchange.sh`。
+    - `scripts/ci-local.sh` 新增 `auth/exchange 联调测试（可选）` 步骤。
+    - `10-testing-acceptance-plan.md` 已补充执行命令、环境变量、`ARAPP_AUTH_EXCHANGE_REQUIRED=1` 强制口径。
+    - 真实环境实测：`ARAPP_EDGE_BASE_URL=https://zlcnljlbuimlzhwpyrlj.supabase.co/functions/v1` 下当前返回 `404 NOT_FOUND`（后端函数未部署）；非强制模式按预期 SKIP，强制模式按预期阻断。
+
+- [x] P2-14 - 部署 auth/exchange Edge Function 并完成强制门禁验证（Linear: `NIN-42`）✅ (完成时间：2026-03-08 20:19)
+  - 成功标准：`POST /v1/auth/exchange` 返回 2xx 且含 `request_id/code/message/retryable`；`ARAPP_AUTH_EXCHANGE_REQUIRED=1 bash scripts/test-auth-exchange.sh` 在预发可通过。
+  - 完成说明：
+    - 已安装 Supabase CLI（`2.75.0`），并初始化本地 `supabase/` 工程目录。
+    - 已实现并部署 Edge Function：`supabase/functions/v1/index.ts`（承载 `/v1/auth/exchange` 路由并返回契约字段）。
+    - 已新增部署脚本：`scripts/deploy-auth-exchange.sh`，支持优先使用 `supabase login` 会话授权。
+    - 已执行强制校验：`ARAPP_AUTH_EXCHANGE_REQUIRED=1 bash scripts/test-auth-exchange.sh`，结果 `PASS AUTH-EXCHANGE-001`。
+    - 风险备注：当前 `supabase/config.toml` 对 `functions.v1` 使用 `verify_jwt=false`（函数内保留 Bearer 头检查）；建议后续专项恢复网关级 JWT 校验并补充回归。

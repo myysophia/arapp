@@ -98,8 +98,12 @@
   - `NIN-31`：P2-03 梳理 Supabase Auth 接入设计与回调路径
   - `NIN-33`：P2-04 接入真实 Supabase AuthService
   - `NIN-34`：P2-05 完成 Auth 会话交换与 Profile/Login 接线
+  - `NIN-35`：P2-06 建立真实 API 配置与请求装配
+  - `NIN-36`：P2-07 Today 接入真实 summary/forecast
+  - `NIN-37`：P2-08 Map 接入真实 suggestions/sources
+  - `NIN-38`：P2-09 Alerts 接入真实 subscriptions
   - `NIN-32`：P2-10 联调测试与发布文档收口
-- 备注：`NIN-32`、`NIN-33`、`NIN-34` 已在本次会话完成并通过本地门禁验证。
+- 备注：`NIN-32`、`NIN-33`、`NIN-34`、`NIN-35`、`NIN-36`、`NIN-37`、`NIN-38` 已在本次会话完成并通过本地门禁验证。
 
 ## 7. 首个立即启动任务
 - 任务：P2-01 建立环境配置契约与 sample 配置文件。
@@ -117,7 +121,7 @@
 
 ## 9. 验收口径
 - Linear 项目、里程碑、任务已创建。
-- `P2-01` 到 `P2-05` 与 `P2-10` 已落地，`NIN-32`、`NIN-33`、`NIN-34` 状态已更新为 `Done`。
+- `P2-01` 到 `P2-10` 已落地，`NIN-32`、`NIN-33`、`NIN-34`、`NIN-35`、`NIN-36`、`NIN-37`、`NIN-38` 状态已更新为 `Done`。
 - 本地 kickoff 文档已提交到 `codex/phase2-kickoff`。
 - 未引入未经确认的新第三方安装。
 
@@ -127,5 +131,9 @@
 - `P2-03` 已完成：回调路径契约、`Info.plist` scheme 约束、错误分类与降级策略已固化，详见 `docs/plans/2026-03-07-p2-03-supabase-auth-callback-design.md`。
 - `P2-04` 已完成：`supabase-swift(Auth)` 依赖接入、`SupabaseAuthService` 真实 `session/signIn/signOut` 实现、`exchangeSession(fromCallbackURL:)` 回调桥接方法已落地。
 - `P2-05` 已完成：`AppRootView.onOpenURL -> AuthFlowModel.handleOAuthCallback -> SupabaseAuthService.exchangeSession` 链路已打通；Profile/Login 状态联动已接线。
+- `P2-06` 已完成：新增 `EdgeFunctionsRequestConfiguration` 与 `LivePollenClientFactory`，统一 `baseURL/token/timeout/defaultHeaders` 请求装配，Today/Map/Alerts 改为复用统一 live client 工厂。
+- `P2-07` 已完成：Today 接入真实 `summary/forecast` 客户端路径，补齐成功态/空态/失败态测试，失败态重试语义与 `APIClientError.isRetryable` 对齐。
+- `P2-08` 已完成：Map 接入真实 `suggestions/sources` 路径，补齐 client 成功态与可重试/非重试失败态测试，失败态重试语义与 `APIClientError.isRetryable` 对齐。
+- `P2-09` 已完成：Alerts 接入真实 `subscriptions` 读写链路，`reload/update` 失败统一映射并与 `APIClientError.isRetryable` 对齐；补齐 client 成功态、可重试/非重试失败态、写回失败恢复测试。
 - `P2-10` 已完成：联调测试快照、发布就绪清单、Phase 2 交付记录已归档（`10-testing-acceptance-plan.md`、`11-release-observability-runbook.md`、`2026-03-08-phase-2-delivery-record.md`）。
-- 验证结果：`bash scripts/test-ios.sh` 与 `bash scripts/ci-local.sh` 全部通过（25 单测 + 1 UI 冒烟 + 本地门禁）。
+- 验证结果：`bash scripts/test-ios.sh` 与 `bash scripts/ci-local.sh` 全部通过（41 单测 + 1 UI 冒烟 + 本地门禁）。
