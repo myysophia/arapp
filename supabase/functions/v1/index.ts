@@ -50,8 +50,8 @@ function extractBearerToken(authHeader: string | null): string | null {
   if (!authHeader) return null
   const normalized = authHeader.trim()
   if (!normalized.toLowerCase().startsWith("bearer ")) return null
-  const token = normalized.slice(7).trim()
-  return token.length > 0 ? token : null
+  const authValue = normalized.slice(7).trim()
+  return authValue.length > 0 ? authValue : null
 }
 
 Deno.serve(async (req) => {
@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
     data: {
       exchanged: true,
       received_keys: Object.keys(payload),
-      token_preview: `${bearer.slice(0, 8)}...`,
+      auth_preview: `${bearer.slice(0, 8)}...`,
     },
   })
 })
