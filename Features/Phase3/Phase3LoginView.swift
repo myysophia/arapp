@@ -6,6 +6,17 @@ struct Phase3LoginView: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                HStack {
+                    Spacer()
+
+                    Button(L10n.tr("common.close")) {
+                        store.closeLogin()
+                    }
+                    .buttonStyle(.plain)
+                    .font(AppTypography.bodyStrong)
+                    .foregroundStyle(AppColor.textSecondary)
+                }
+
                 VStack(alignment: .leading, spacing: AppSpacing.sm) {
                     Text(store.loginModel.title)
                         .font(AppTypography.titleHero)
@@ -22,7 +33,7 @@ struct Phase3LoginView: View {
                     StateView(
                         type: .error,
                         title: "Login issue",
-                        bodyText: store.loginModel.errorMessage,
+                        bodyText: store.loginErrorMessage,
                         ctaTitle: "清除",
                         onTapCTA: store.dismissLoginError
                     )

@@ -12,6 +12,7 @@ final class Phase3DemoStore: ObservableObject {
     @Published var alertsState: Phase3AlertsState = .saved
     @Published var profileState: Phase3ProfileState = .anonymous
     @Published var isDebugPanelPresented = false
+    @Published var loginErrorMessage: String
 
     let loginModel = Phase3MockFixtures.login
     let todayModel = Phase3MockFixtures.today
@@ -19,6 +20,11 @@ final class Phase3DemoStore: ObservableObject {
     let alertsModel = Phase3MockFixtures.alerts
     let profileModel = Phase3MockFixtures.profile
     let onboardingSteps = Phase3MockFixtures.onboarding
+
+    init() {
+        self.loginErrorMessage = Phase3MockFixtures.login.errorMessage
+        applyUITestOverridesIfNeeded()
+    }
 
     func continueOnboarding() {
         if onboardingIndex < onboardingSteps.count - 1 {
@@ -29,7 +35,9 @@ final class Phase3DemoStore: ObservableObject {
     }
 
     func skipOnboarding() {
-        flowState = .login
+        profileState = .anonymous
+        selectedTab = .today
+        flowState = .main
     }
 
     func continueWithoutLogin() {
@@ -60,9 +68,41 @@ final class Phase3DemoStore: ObservableObject {
 
     func dismissLoginError() {
         loginState = .idle
+        loginErrorMessage = loginModel.errorMessage
+    }
+
+    func closeLogin() {
+        profileState = .anonymous
+        selectedTab = .today
+        flowState = .main
     }
 
     func openDebugPanel() {
         isDebugPanelPresented = true
     }
+
+    private func applyUITestOverridesIfNeeded() {
+        let env = ProcessInfo.processInfo.environment
+
+        if env[Phase3UITestEnvironmentKey.skipOnboarding] == "1" {
+            flowState = .main
+        }
+
+        if let routeValue = env[Phase3UITestEnvironmentKey.initialRoute]?.lowercased(),
+           routeValue == "login" {
+            flowState = .login
+        }
+
+        if let errorMessage = env[Phase3UITestEnvironmentKey.loginErrorMessage],
+           !errorMessage.isEmpty {
+            loginErrorMessage = errorMessage
+            loginState = .failed
+        }
+    }
+}
+
+private enum Phase3UITestEnvironmentKey {
+    static let skipOnboarding = "ARAPP_UI_SKIP_ONBOARDING"
+    static let initialRoute = "ARAPP_UI_INITIAL_ROUTE"
+    static let loginErrorMessage = "ARAPP_UI_LOGIN_ERROR_MESSAGE"
 }
