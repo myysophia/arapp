@@ -49,6 +49,12 @@ struct ProfileView: View {
                 )
                 PrivacySection(isAnonymous: state.isAnonymous)
                 AboutSection(versionLabel: state.versionLabel)
+                Phase3ReviewTools(
+                    onOpenCatalog: { appState.openPhase3StatesCatalog() },
+                    onOpenOnboarding: { appState.reopenOnboardingForReview() },
+                    onOpenLogin: { appState.openLoginForReview() },
+                    onJumpToTab: { appState.jumpToTab($0) }
+                )
                 DangerZone(isAnonymous: state.isAnonymous) {
                     Task {
                         await authFlow.signOut()
@@ -58,7 +64,7 @@ struct ProfileView: View {
             .padding(.horizontal, AppSpacing.md)
             .padding(.vertical, AppSpacing.lg)
         }
-        .background(AppColor.background.ignoresSafeArea())
+        .appPageBackground()
         .navigationTitle(AppTab.profile.title)
         .navigationBarTitleDisplayMode(.large)
         .task {
@@ -143,11 +149,7 @@ private struct AuthFlowNoticeCard: View {
             .foregroundStyle(AppColor.brand)
         }
         .padding(AppSpacing.lg)
-        .background(
-            RoundedRectangle(cornerRadius: AppRadius.lg)
-                .fill(AppColor.surface)
-                .shadow(color: AppShadow.cardColor, radius: AppShadow.cardRadius, x: AppShadow.cardX, y: AppShadow.cardY)
-        )
+        .appCardSurface()
     }
 }
 
@@ -188,13 +190,7 @@ private struct AccountStatusCard: View {
             }
         }
         .padding(AppSpacing.lg)
-        .background(cardBackground)
-    }
-
-    private var cardBackground: some View {
-        RoundedRectangle(cornerRadius: AppRadius.lg)
-            .fill(AppColor.surface)
-            .shadow(color: AppShadow.cardColor, radius: AppShadow.cardRadius, x: AppShadow.cardX, y: AppShadow.cardY)
+        .appCardSurface()
     }
 }
 
@@ -411,6 +407,87 @@ private struct AboutSection: View {
     }
 }
 
+private struct Phase3ReviewTools: View {
+    let onOpenCatalog: () -> Void
+    let onOpenOnboarding: () -> Void
+    let onOpenLogin: () -> Void
+    let onJumpToTab: (AppTab) -> Void
+
+    var body: some View {
+        ProfileCardContainer(
+            title: "Phase 3 review tools",
+            subtitle: "统一打开状态目录、重走首屏流程，并快速切到四个主页面做手动验收。"
+        ) {
+            VStack(spacing: AppSpacing.sm) {
+                reviewButton(
+                    title: "Open states catalog",
+                    subtitle: "查看 Search Sheet、Source Sheet、Danger Dialog 与核心异常态",
+                    action: onOpenCatalog
+                )
+
+                reviewButton(
+                    title: "Restart onboarding",
+                    subtitle: "重新进入 Onboarding 三步与跳过路径",
+                    action: onOpenOnboarding
+                )
+
+                reviewButton(
+                    title: "Open login screen",
+                    subtitle: "从 Profile 直接拉起 Login 流程，验证匿名与登录切换",
+                    action: onOpenLogin
+                )
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("Quick tab jump")
+                        .font(AppTypography.captionStrong)
+                        .foregroundStyle(AppColor.textSecondary)
+
+                    HStack(spacing: AppSpacing.sm) {
+                        ForEach(AppTab.allCases) { tab in
+                            Button(tab.title) {
+                                onJumpToTab(tab)
+                            }
+                            .buttonStyle(.plain)
+                            .font(AppTypography.captionStrong)
+                            .foregroundStyle(AppColor.brandDeep)
+                            .padding(.horizontal, AppSpacing.sm)
+                            .padding(.vertical, AppSpacing.xs)
+                            .background(AppColor.surfaceMuted, in: Capsule())
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    private func reviewButton(title: String, subtitle: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: AppSpacing.md) {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(title)
+                        .font(AppTypography.bodyStrong)
+                        .foregroundStyle(AppColor.textPrimary)
+
+                    Text(subtitle)
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColor.textSecondary)
+                        .multilineTextAlignment(.leading)
+                }
+
+                Spacer()
+
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(AppColor.textDisabled)
+            }
+            .padding(AppSpacing.md)
+            .background(AppColor.surfaceMuted, in: RoundedRectangle(cornerRadius: AppRadius.md))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 private struct AboutRow: View {
     let title: String
     let detail: String
@@ -490,11 +567,7 @@ private struct ProfileCardContainer<Content: View>: View {
             content
         }
         .padding(AppSpacing.lg)
-        .background(
-            RoundedRectangle(cornerRadius: AppRadius.lg)
-                .fill(AppColor.surface)
-                .shadow(color: AppShadow.cardColor, radius: AppShadow.cardRadius, x: AppShadow.cardX, y: AppShadow.cardY)
-        )
+        .appCardSurface()
     }
 }
 

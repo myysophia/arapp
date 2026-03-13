@@ -36,6 +36,8 @@ struct AppRootView: View {
                     LoginView(authFlow: appState.authFlowModel)
                 case .onboarding:
                     OnboardingFlowView()
+                case .statesCatalog:
+                    StatesCatalogView()
                 }
             }
             .task {
