@@ -54,29 +54,20 @@ final class MapScreenModel {
     private let liveClientFactory: @Sendable () throws -> any PollenAPIClienting
 
     init(
-        dataMode: DataMode = .mock,
+        dataMode: DataMode? = nil,
         mockScenario: MockScenario = .success,
         mockClient: MockPollenAPIClient = .demo,
-        liveClientFactory: @escaping @Sendable () throws -> any PollenAPIClienting = {
-            let environment = ProcessInfo.processInfo.environment
-            guard
-                let rawBaseURL = environment["ARAPP_EDGE_BASE_URL"],
-                let baseURL = URL(string: rawBaseURL)
-            else {
-                throw MapScreenModelError.missingBaseURL
-            }
-
-            return EdgeFunctionsPollenAPIClient(
-                baseURL: baseURL,
-                accessToken: environment["ARAPP_ACCESS_TOKEN"]
-            )
-        }
+        environment: AppEnvironment = .current,
+        liveClientFactory: (@Sendable () throws -> any PollenAPIClienting)? = nil
     ) {
-        self.dataMode = dataMode
+        self.dataMode = dataMode ?? (environment.prefersLiveServices ? .client : .mock)
         self.mockScenario = mockScenario
         self.contentState = .loading
         self.mockClient = mockClient
-        self.liveClientFactory = liveClientFactory
+        let resolvedFactory = LivePollenClientFactory(environment: environment)
+        self.liveClientFactory = liveClientFactory ?? {
+            try resolvedFactory.makeClient()
+        }
     }
 
     var reloadKey: String {
@@ -95,17 +86,17 @@ final class MapScreenModel {
                 let client = try liveClientFactory()
                 contentState = try await makeClientState(using: client)
             }
-        } catch let error as MapScreenModelError {
+        } catch let error as LivePollenClientFactoryError {
             contentState = .failure(
-                title: error.title,
-                detail: error.errorDescription ?? L10n.tr("map.error.load_failed"),
-                retryable: error.isRetryable
+                title: L10n.tr("common.client_not_configured"),
+                detail: error.errorDescription ?? L10n.tr("map.error.missing_base_url"),
+                retryable: false
             )
         } catch let error as APIClientError {
             contentState = .failure(
                 title: L10n.tr("common.client_unavailable"),
                 detail: error.errorDescription ?? L10n.tr("map.error.client_request_failed"),
-                retryable: true
+                retryable: error.isRetryable
             )
         } catch {
             contentState = .failure(
@@ -317,31 +308,6 @@ final class MapScreenModel {
         }
 
         return mapped.isEmpty ? demoState.searchItems : mapped
-    }
-}
-
-private enum MapScreenModelError: LocalizedError {
-    case missingBaseURL
-
-    var title: String {
-        switch self {
-        case .missingBaseURL:
-            L10n.tr("common.client_not_configured")
-        }
-    }
-
-    var isRetryable: Bool {
-        switch self {
-        case .missingBaseURL:
-            false
-        }
-    }
-
-    var errorDescription: String? {
-        switch self {
-        case .missingBaseURL:
-            L10n.tr("map.error.missing_base_url")
-        }
     }
 }
 

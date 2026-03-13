@@ -6,25 +6,25 @@ struct AppRootView: View {
     var body: some View {
         NavigationStack {
             TabView(selection: selectedTabBinding) {
-                TodayView()
+                TodayView(screenModel: appState.todayScreenModel)
                     .tabItem {
                         Label(AppTab.today.title, systemImage: AppTab.today.systemImage)
                     }
                     .tag(AppTab.today)
 
-                MapView()
+                MapView(screenModel: appState.mapScreenModel)
                     .tabItem {
                         Label(AppTab.map.title, systemImage: AppTab.map.systemImage)
                     }
                     .tag(AppTab.map)
 
-                AlertsView()
+                AlertsView(screenModel: appState.alertsScreenModel)
                     .tabItem {
                         Label(AppTab.alerts.title, systemImage: AppTab.alerts.systemImage)
                     }
                     .tag(AppTab.alerts)
 
-                ProfileView()
+                ProfileView(authFlow: appState.authFlowModel)
                     .tabItem {
                         Label(AppTab.profile.title, systemImage: AppTab.profile.systemImage)
                     }
@@ -33,9 +33,11 @@ struct AppRootView: View {
             .navigationDestination(item: routeBinding) { route in
                 switch route {
                 case .login:
-                    LoginView()
+                    LoginView(authFlow: appState.authFlowModel)
                 case .onboarding:
                     OnboardingFlowView()
+                case .statesCatalog:
+                    StatesCatalogView()
                 }
             }
             .task {
@@ -45,6 +47,17 @@ struct AppRootView: View {
             }
         }
         .environment(\.locale, Locale(identifier: appState.localeIdentifier))
+        .onOpenURL { url in
+            Task {
+                let handled = await appState.authFlowModel.handleOAuthCallback(url)
+                guard handled else { return }
+
+                if !appState.authFlowModel.isAnonymous {
+                    appState.selectedTab = .profile
+                    appState.route = nil
+                }
+            }
+        }
     }
 
     private var selectedTabBinding: Binding<AppTab> {

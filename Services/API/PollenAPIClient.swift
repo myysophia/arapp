@@ -60,6 +60,93 @@ enum APIClientError: Error, LocalizedError, Sendable {
             "网络请求失败：\(message)"
         }
     }
+
+    var isRetryable: Bool {
+        switch self {
+        case .invalidBaseURL:
+            false
+        case .invalidResponse:
+            true
+        case let .unexpectedStatus(_, _, retryable):
+            retryable
+        case .decodingFailed:
+            false
+        case .transportFailed:
+            true
+        }
+    }
+}
+
+struct EdgeFunctionsRequestConfiguration: Sendable, Equatable {
+    let baseURL: URL
+    let accessToken: String?
+    let timeoutInterval: TimeInterval
+    let defaultHeaders: [String: String]
+
+    init(
+        baseURL: URL,
+        accessToken: String? = nil,
+        timeoutInterval: TimeInterval = 15,
+        defaultHeaders: [String: String] = [:]
+    ) {
+        self.baseURL = baseURL
+        self.accessToken = accessToken?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nonEmpty
+        self.timeoutInterval = timeoutInterval > 0 ? timeoutInterval : 15
+        self.defaultHeaders = defaultHeaders
+    }
+}
+
+enum LivePollenClientFactoryError: Error, LocalizedError, Sendable {
+    case missingEdgeRuntimeConfiguration
+
+    var errorDescription: String? {
+        switch self {
+        case .missingEdgeRuntimeConfiguration:
+            "未配置 Edge Functions 基础地址。"
+        }
+    }
+}
+
+struct LivePollenClientFactory: Sendable {
+    let environment: AppEnvironment
+    let session: URLSession
+    let decoder: JSONDecoder
+    let defaultHeaders: [String: String]
+
+    init(
+        environment: AppEnvironment,
+        session: URLSession = .shared,
+        decoder: JSONDecoder = .edgeFunctionsDecoder,
+        defaultHeaders: [String: String] = ["X-ArApp-Client": "ios"]
+    ) {
+        self.environment = environment
+        self.session = session
+        self.decoder = decoder
+        self.defaultHeaders = defaultHeaders
+    }
+
+    func makeRequestConfiguration() throws -> EdgeFunctionsRequestConfiguration {
+        guard let edgeRuntime = environment.edgeRuntime else {
+            throw LivePollenClientFactoryError.missingEdgeRuntimeConfiguration
+        }
+
+        return EdgeFunctionsRequestConfiguration(
+            baseURL: edgeRuntime.baseURL,
+            accessToken: edgeRuntime.accessToken,
+            timeoutInterval: edgeRuntime.timeoutInterval,
+            defaultHeaders: defaultHeaders
+        )
+    }
+
+    func makeClient() throws -> any PollenAPIClienting {
+        EdgeFunctionsPollenAPIClient(
+            configuration: try makeRequestConfiguration(),
+            session: session,
+            decoder: decoder
+        )
+    }
 }
 
 enum APIEndpoint {
@@ -93,8 +180,11 @@ enum APIEndpoint {
         }
     }
 
-    func makeURLRequest(baseURL: URL, accessToken: String?) throws -> URLRequest {
-        guard var components = URLComponents(url: baseURL.appending(path: path), resolvingAgainstBaseURL: false) else {
+    func makeURLRequest(configuration: EdgeFunctionsRequestConfiguration) throws -> URLRequest {
+        guard var components = URLComponents(
+            url: configuration.baseURL.appending(path: path),
+            resolvingAgainstBaseURL: false
+        ) else {
             throw APIClientError.invalidBaseURL
         }
 
@@ -129,25 +219,41 @@ enum APIEndpoint {
             }
         case let .alertSubscription(request):
             components.queryItems = nil
-            var urlRequest = try makeBaseRequest(components: components, accessToken: accessToken)
+            var urlRequest = try makeBaseRequest(
+                components: components,
+                configuration: configuration
+            )
             urlRequest.httpMethod = method
             urlRequest.httpBody = try JSONEncoder.edgeFunctionsEncoder.encode(request)
             urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
             return urlRequest
         }
 
-        var request = try makeBaseRequest(components: components, accessToken: accessToken)
+        var request = try makeBaseRequest(
+            components: components,
+            configuration: configuration
+        )
         request.httpMethod = method
         return request
     }
 
-    private func makeBaseRequest(components: URLComponents, accessToken: String?) throws -> URLRequest {
+    private func makeBaseRequest(
+        components: URLComponents,
+        configuration: EdgeFunctionsRequestConfiguration
+    ) throws -> URLRequest {
         guard let url = components.url else {
             throw APIClientError.invalidBaseURL
         }
+
         var request = URLRequest(url: url)
+        request.timeoutInterval = configuration.timeoutInterval
+
+        for (header, value) in configuration.defaultHeaders {
+            request.setValue(value, forHTTPHeaderField: header)
+        }
+
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        if let accessToken, !accessToken.isEmpty {
+        if let accessToken = configuration.accessToken {
             request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         }
         return request
@@ -155,21 +261,36 @@ enum APIEndpoint {
 }
 
 struct EdgeFunctionsPollenAPIClient: PollenAPIClienting {
-    let baseURL: URL
-    let accessToken: String?
+    let configuration: EdgeFunctionsRequestConfiguration
     let session: URLSession
     let decoder: JSONDecoder
 
     init(
-        baseURL: URL,
-        accessToken: String? = nil,
+        configuration: EdgeFunctionsRequestConfiguration,
         session: URLSession = .shared,
         decoder: JSONDecoder = .edgeFunctionsDecoder
     ) {
-        self.baseURL = baseURL
-        self.accessToken = accessToken
+        self.configuration = configuration
         self.session = session
         self.decoder = decoder
+    }
+
+    init(
+        baseURL: URL,
+        accessToken: String? = nil,
+        timeoutInterval: TimeInterval = 15,
+        session: URLSession = .shared,
+        decoder: JSONDecoder = .edgeFunctionsDecoder
+    ) {
+        self.init(
+            configuration: EdgeFunctionsRequestConfiguration(
+                baseURL: baseURL,
+                accessToken: accessToken,
+                timeoutInterval: timeoutInterval
+            ),
+            session: session,
+            decoder: decoder
+        )
     }
 
     func fetchSummary(_ query: SummaryQuery) async throws -> APIEnvelope<PollenSummary> {
@@ -193,7 +314,7 @@ struct EdgeFunctionsPollenAPIClient: PollenAPIClienting {
     }
 
     private func send<Response: Decodable & Sendable>(_ endpoint: APIEndpoint, as type: Response.Type) async throws -> Response {
-        let request = try endpoint.makeURLRequest(baseURL: baseURL, accessToken: accessToken)
+        let request = try endpoint.makeURLRequest(configuration: configuration)
 
         do {
             let (data, response) = try await session.data(for: request)
@@ -359,4 +480,10 @@ private extension JSONEncoder {
         encoder.outputFormatting = [.sortedKeys]
         return encoder
     }()
+}
+
+private extension String {
+    var nonEmpty: String? {
+        isEmpty ? nil : self
+    }
 }

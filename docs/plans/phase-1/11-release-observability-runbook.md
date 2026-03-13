@@ -49,3 +49,36 @@
 ## 10. 假设与默认值
 - 首版由单人值班，严重故障 30 分钟内响应。
 - 所有关键告警默认推送到统一通知通道。
+
+## 11. Phase 2 发布就绪清单（2026-03-08）
+### 11.1 配置与密钥
+- `App/Environment/AppEnvironment.local.env` 已配置：
+  - `ARAPP_RUNTIME_MODE=staging`
+  - `ARAPP_EDGE_BASE_URL`
+  - `ARAPP_EDGE_TIMEOUT_SECONDS`
+  - `ARAPP_ACCESS_TOKEN`（如需鉴权联调）
+  - `ARAPP_SUPABASE_URL`
+  - `ARAPP_SUPABASE_ANON_KEY`
+  - `ARAPP_SUPABASE_REDIRECT_SCHEME/HOST/PATH`
+- 本地真实密钥文件已在 `.gitignore` 忽略，未入库。
+- Supabase Dashboard 已配置回调地址：`arapp://auth/callback`。
+
+### 11.2 联调验证门禁
+- 必跑：`bash scripts/test-ios.sh`
+- 必跑：`bash scripts/ci-local.sh`
+- 通过标准：
+  - 单元测试与 UI 冒烟全绿。
+  - 秘钥扫描与文档一致性检查全绿。
+  - RLS 越权与 auth/exchange 步骤在门禁模式下可通过（或给出明确阻断原因）。
+
+### 11.3 上线前人工检查
+- 登录链路：Google/GitHub/Apple 至少各 1 次全流程成功。
+- 失败链路：取消登录、回调错误、会话缺失均有可见提示且可回到匿名态。
+- 观察项：`auth_success`、`auth_fail`、API 成功率、崩溃率。
+- 执行清单：`docs/plans/phase-1/13-provider-acceptance-checklist.md`，并按约定路径留存截图与日志。
+
+### 11.4 回滚策略（Auth 相关）
+- 如发布后出现大面积登录失败：
+  - 将 `ARAPP_RUNTIME_MODE` 暂切 `mock` 或下发开关隐藏登录入口。
+  - 保留匿名主流程可用，避免阻断 Today/Map/Alerts 核心路径。
+  - 在 Linear 创建事故记录并回填复盘。
